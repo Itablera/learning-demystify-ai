@@ -5,6 +5,8 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
+    "dev:deepseek": "turbo dev --filter=deepseek-r1-webgpu",
+    "dev:janus": "turbo dev --filter=janus-pro-webgpu",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },

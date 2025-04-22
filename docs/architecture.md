@@ -2,19 +2,19 @@
 
 ```
 .
-├── apps/                           - Applications that will run and possible consume packages
-│   ├── transformers.js-examples    - Run LLMs fully locally using webgpu. Here as a submodule see [source](https://github.com/huggingface/transformers.js-examples)
-│   ├── app2
-│   └── app3
-├── packages/                       - Shared packages and data that will be used by applications
+├── apps/                      - Applications that will run and possible consume packages
+│   ├── deepseek-r1-webgpu
+│   └── janus-pro-webgpu
+├── packages/                  - Shared packages and data that will be used by applications
 │   ├── package1
 │   ├── package2
 │   └── package3
-├── infra/                          - Configuration and infrastructure scripts
-│   ├── Ollama                      - Instructions on how to run LLMs locally
-│   ├── Qdrant                      - Manages vector embeddings for similarity search
-│   └── Agent0                      - Instructions on how to run agent-zero locally
-└── docs                            - Documentation and notes
+├── infra/                     - Configuration and infrastructure scripts
+│   ├── ollama                 - Instructions on how to run LLMs locally
+│   ├── qdrant                 - Manages vector embeddings for similarity search
+│   └── agent0                 - Instructions on how to run agent-zero locally
+├── reference-repos/           - External repos added as sub-modules for convenience 
+└── docs                       - Documentation and notes
 
 
 ## Architecture and Tooling
