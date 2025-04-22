@@ -1,0 +1,7 @@
+- [V0](https://v0.dev) - Quickly build interfaces using AI (or full-stack applications if you dare).
+- [Ollama](https://ollama.com) - A tool for running LLMs locally.
+- [Qdrant](https://qdrant.tech) - A vector database for similarity search and related operations.
+- [agent-zero](https://github.com/frdel/agent-zero) - A fun and scary tool to play with agents that has access to your terminal 😎
+- [Langchain](https://langchain.com) - A framework for building applications with LLMs.
+- [Turborepo](https://turbo.build/repo) - A high-performance build system for JavaScript and TypeScript monorepos.
+- [transformers.js-examples](https://github.com/huggingface/transformers.js-examples) - Examples of using Hugging Face's Transformers.js library for running LLMs in the browser.
