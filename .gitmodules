@@ -1,0 +1,3 @@
+[submodule "apps/transformers.js-examples"]
+	path = apps/transformers.js-examples
+	url = https://github.com/huggingface/transformers.js-examples.git
