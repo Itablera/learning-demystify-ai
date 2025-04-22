@@ -11,5 +11,6 @@ As we are using Turborepo, you can install and run everything from the root of t
 2. Run something!
    1. Janus demo - `pnpm run dev:janus`
    2. DeepSeek demo - `pnpm run dev:deepseek`
+   3. The API - `pnpm run dev:api`
 3. Open a Chrome based browser and go to `http://localhost:5173` (or whatever port is used)
 

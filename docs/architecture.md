@@ -3,12 +3,12 @@
 ```
 .
 ├── apps/                      - Applications that will run and possible consume packages
-│   ├── deepseek-r1-webgpu
-│   └── janus-pro-webgpu
+│   ├── deepseek-r1-webgpu     - Demo application to run DeepSeek on WebGPU
+│   ├── janus-pro-webgpu       - Demo application for Janus Pro on WebGPU
+│   ├── api                    - All backend stuff
+│   └── web                    - Frontend web application
 ├── packages/                  - Shared packages and data that will be used by applications
-│   ├── package1
-│   ├── package2
-│   └── package3
+│   └── common                 - Common code and utilities shared across applications
 ├── infra/                     - Configuration and infrastructure scripts
 │   ├── ollama                 - Instructions on how to run LLMs locally
 │   ├── qdrant                 - Manages vector embeddings for similarity search
