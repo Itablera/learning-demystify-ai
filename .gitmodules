@@ -1,0 +1,3 @@
+[submodule "reference-repos/transformers.js-examples"]
+	path = reference-repos/transformers.js-examples
+	url = https://github.com/huggingface/transformers.js-examples.git

@@ -1,31 +1,16 @@
-# shadcn/ui monorepo template
+# Demystify AI - AKA. Crash and Burn
 
-This template is for creating a monorepo with shadcn/ui.
+## How to run
 
-## Usage
+> [!NOTE]
+> Always use `pnpm` and not `npm`. This repo has copies/references to other repos. So even if some app instructs you to use `npm`, please use `pnpm` instead.
 
-```bash
-pnpm dlx shadcn@latest init
-```
+As we are using Turborepo, you can install and run everything from the root of the repo. However, feel free to explore the individual apps and packages as well (there should be a readme file for each app). 
 
-## Adding components
+1. In project root, run `pnpm install` to install all dependencies
+2. Run something!
+   1. Janus demo - `pnpm run dev:janus`
+   2. DeepSeek demo - `pnpm run dev:deepseek`
+   3. The API - `pnpm run dev:api`
+3. Open a Chrome based browser and go to `http://localhost:5173` (or whatever port is used)
 
-To add components to your app, run the following command at the root of your `web` app:
-
-```bash
-pnpm dlx shadcn@latest add button -c apps/web
-```
-
-This will place the ui components in the `packages/ui/src/components` directory.
-
-## Tailwind
-
-Your `tailwind.config.ts` and `globals.css` are already set up to use the components from the `ui` package.
-
-## Using components
-
-To use the components in your app, import them from the `ui` package.
-
-```tsx
-import { Button } from "@workspace/ui/components/button"
-```

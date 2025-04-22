@@ -1,0 +1,9 @@
+services:
+  agent0:
+    image: frdel/agent-zero-run
+    container_name: demystify-ai-agent0
+    ports:
+      - "9080:80"
+    volumes:
+      - ./mount-a0:/a0
+      - ./mount-root:/root

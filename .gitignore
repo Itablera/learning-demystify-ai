@@ -34,3 +34,7 @@ npm-debug.log*
 # Misc
 .DS_Store
 *.pem
+
+infra/agent0/mount-a0
+infra/agent0/mount-root
+infra/qdrant/mount-storage
