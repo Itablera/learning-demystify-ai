@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ChatActor } from '@/types'
+import { ChatActor } from '../../types'
 
 export const MessageSchema = z.object({
   id: z.string(),
@@ -8,6 +8,12 @@ export const MessageSchema = z.object({
   timestamp: z.date()
 })
 export type Message = z.infer<typeof MessageSchema>
+
+export const MessageInputSchema = MessageSchema.pick({
+  content: true,
+  actor: true
+})
+export type MessageInput = z.infer<typeof MessageInputSchema>
 
 export const ChatSchema = z.object({
   id: z.string(),

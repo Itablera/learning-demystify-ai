@@ -16,7 +16,9 @@ export class MockChatRepository implements ChatRepository {
     const chat = this.chats.find(chat => chat.id === id)
     return chat || null
   }
-
+  /**
+   * Fortsätt här: Flytta schemas från apps till packages/api. Evl. en fil per domain istället för mapp med endast en fil
+   */
   async findPaginated(page: number, limit: number): Promise<{
     data: Chat[]
     total: number

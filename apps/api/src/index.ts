@@ -16,17 +16,17 @@ const fastify = Fastify({
 fastify.setValidatorCompiler(validatorCompiler);
 fastify.setSerializerCompiler(serializerCompiler);
 
-// Register all plugins
-await registerPlugins(fastify)
-
-// Register all routes
-await registerRoutes(fastify)
-
 /**
  * Run the server!
  */
 const start = async () => {
-  try {
+  try {  
+    // Register all plugins
+    await registerPlugins(fastify)
+    
+    // Register all routes
+    await registerRoutes(fastify)
+
     await fastify.listen({ 
       port: config.server.port, 
       host: config.server.host 

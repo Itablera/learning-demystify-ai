@@ -1,6 +1,6 @@
 import { Chat, Message } from './schema'
 import { ChatRepository } from './repository'
-import { ChatActor } from '@workspace/common/types'
+import { ChatActor } from '../../types'
 
 /**
  * Use cases for the chat domain

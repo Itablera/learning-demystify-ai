@@ -25,11 +25,11 @@ This project uses a modern full-stack monorepo setup with the following stack an
 
 ### Backend Folder Structure
 
-Each **domain** has its own folder under `apps/backend/src`, mirroring the structure in `packages/common/src/domains`.
+Each **domain** has its own folder under `apps/backend/src/domains`, mirroring the structure in `packages/common/src/domains`.
 
 Example:
 ```
-apps/backend/src/chat/
+apps/backend/src/domains/chat/
   routes.ts         # Fastify routes
   controller.ts     # HTTP/controller-level logic
   repository.ts     # Repository implementation
@@ -38,7 +38,7 @@ apps/backend/src/chat/
 ```
 
 - Shared Zod schemas, TypeScript types, and repository interfaces are defined in `packages/common/src/domains`
-- Backend-specific logic (database, langchain operations, etc.) implements those interfaces and orchestrates domain operations. These implementations are located in `apps/backend/src` 
+- Backend-specific logic (database, langchain operations, etc.) implements those interfaces and orchestrates domain operations. These implementations are located in `apps/backend/src/domains` 
 
 ## Domains and Types Overview
 

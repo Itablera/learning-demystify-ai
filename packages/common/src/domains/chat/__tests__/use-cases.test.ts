@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { ChatUseCases } from '../use-cases'
 import { MockChatRepository } from './mock-repository'
-import { ChatActor } from '@workspace/common/types'
+import { ChatActor } from '../../../types'
 
 describe('ChatUseCases', () => {
   let repository: MockChatRepository

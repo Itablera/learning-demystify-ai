@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { chatRoutes } from '@/domains/chat/routes/chat.routes.js'
+import { chatRoutes } from '@/domains/chat/routes'
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Register API routes with prefix
