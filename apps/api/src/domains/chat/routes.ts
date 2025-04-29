@@ -8,13 +8,19 @@ import {
   listConversations 
 } from '@workspace/domains'
 import { InMemoryChatRepository } from './repository'
-import { MockAIServiceAdapter } from './service'
+import { OllamaAIServiceAdapter } from './service'
 import { RoutesProvider } from '@/index'
-import { CreateConversationRequestSchema, ConversationResponseSchema, ConversationsListResponseSchema, IdParamsSchema, MessagesListResponseSchema, AddMessageRequestSchema, MessageResponseSchema, ChatCompletionRequestSchema, ChatCompletionResponseSchema, AddDocumentRequestSchema, AddDocumentResponseSchema, BaseResponseSchema } from '@workspace/api'
+import { CreateConversationRequestSchema, ConversationResponseSchema, ConversationsListResponseSchema, IdParamsSchema, MessagesListResponseSchema, AddMessageRequestSchema, MessageResponseSchema, ChatCompletionRequestSchema, ChatCompletionResponseSchema, AddDocumentRequestSchema, AddDocumentResponseSchema, BaseResponseSchema, DataResponseSchema } from '@workspace/api'
 
 // Create a single repository instance to be used across all routes
 const chatRepository = new InMemoryChatRepository()
-const aiService = new MockAIServiceAdapter()
+
+// Create an instance of the OllamaAIServiceAdapter
+// You can configure the model name and API URL based on your environment
+const aiService = new OllamaAIServiceAdapter(
+  process.env.OLLAMA_MODEL || 'llama3',
+  process.env.OLLAMA_API_URL || 'http://localhost:11434'
+)
 
 export async function chatRoutes(routes: RoutesProvider): Promise<void> {
   
@@ -282,4 +288,48 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       }
     }
   )
+
+  // Simple chat message test route
+    routes.post(
+        '/simple-chat',
+        {
+            schema: {
+                body: AddMessageRequestSchema,
+                response: {
+                    200: BaseResponseSchema,
+                }
+            }
+        },
+        async (request) => {
+            const { content, role } = request.body
+            const generation = await aiService.simpleChat(content);
+            
+            return {
+                success: true,
+                message: generation,
+                timestamp: new Date().toISOString(),
+            }
+        }
+    )
+
+    // Simple chat message test route
+    routes.get(
+        '/hi',
+        {
+            schema: {
+                response: {
+                    200: BaseResponseSchema,
+                }
+            }
+        },
+        async () => {
+            const generation = await aiService.sayHi();
+            
+            return {
+                success: true,
+                message: generation,
+                timestamp: new Date().toISOString(),
+            }
+        }
+    )
 }
