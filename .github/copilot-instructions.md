@@ -1,63 +1,70 @@
 # GitHub Copilot Project Instructions
 
-This project uses a modern full-stack monorepo setup with the following stack and conventions. These guidelines are tailored to assist AI tools like GitHub Copilot in generating consistent, maintainable, and type-safe code.
+This file contains concise instructions tailored for GitHub Copilot to generate consistent, maintainable, and type-safe code.
 
-## General Setup
+## Core Structure and Folder Layout
 
-- **Monorepo** managed using **Turborepo**
-- **Package manager**: `pnpm`
-- **Domain Driven Design** (DDD) approach
-  - All shared logic (types, Zod schemas, interfaces, domain contracts) lives in `packages/common/src/domains`
-  - Types are located in `packages/common/src/types`
+- Monorepo managed using Turborepo  
+- Package manager: `pnpm`  
+- Domains live under `packages/common/src/domains` (core logic) and `apps/api/src/domains` (backend implementation)  
+- Shared utility types and enums live in `packages/common/src/types`  
+- Backend-specific implementations (e.g., repositories, routes) are in `apps/api/src/domains` 
 
-## Frontend
+## Architectural Guidelines
 
-- Framework: **Next.js v15** (App Router)
-- Styling: **Tailwind CSS v4**
-- UI components: **shadcn/ui**
-- TypeScript is used throughout
-- Follows modern React best practices
+The codebase follows Domain-Driven Design (DDD) principles and the Repository Pattern. Each domain encapsulates its own schema, use-cases, and repository interface. Repository implementations are kept separate from domain logic, under `apps/api/src/domains/[domain]/repository.ts`. Repositories should not contain business logic—only persistence-related behavior. Use-cases coordinate business operations and may call repositories, services, or workflows.
 
-## Backend
+## Schema vs DTO Distinction
 
-- Server framework: **Fastify** 
-- Use **langchain** as a library for building LLM applications
+- Core domain schemas and types are defined in `@workspace/do-common`  
+- API-facing DTO schemas (request/response shapes) are defined in `@workspace/do-api`  
 
-### Backend Folder Structure
+## Package and Import Conventions
 
-Each **domain** has its own folder under `apps/backend/src/domains`, mirroring the structure in `packages/common/src/domains`.
+- **Inside packages** (e.g., `packages/common`, `packages/api`):  
+  - **Always use relative imports** (e.g., `./foo`, `../bar`) for files within the same package boundary.  
+  - **Never use aliases like `@/`, `@workspace/do-common` or `@workspace/do-api`** for intra-package imports.  
+  - **Only use `@workspace/do-common` or `@workspace/do-api`** when importing *across* packages.
 
-Example:
+- **Inside apps** (e.g., `apps/api`, `apps/frontend`):  
+  - **Use the `@/` alias** (e.g., `@/domains/user/routes`) for internal imports within the same app.
+  - **Use package imports** (e.g., `@workspace/do-common`) for shared logic or types.
+
+- **Never use relative imports that cross domain or package boundaries.**
+
+### Examples
+
+#### Correct relative imports inside a package:
+```ts
+// In packages/common/src/domains/user/index.ts
+import { UserSchema } from './schema'
+import { validateUser } from '../utils/validateUser'
 ```
-apps/api/src/domains/chat/
-  routes.ts         # Fastify routes
-  repository.ts     # Repository implementation
+
+#### Correct cross-package imports:
+```ts
+// In apps/api/src/domains/user/create.ts
+import { UserSchema } from '@workspace/do-common'
+import { CreateUserRequestSchema } from '@workspace/do-api'
 ```
 
-- Shared Zod schemas, TypeScript types, and repository interfaces are defined in `packages/common/src/domains`
-- Backend-specific logic (database, langchain operations, etc.) implements those interfaces and orchestrates domain operations. These implementations are located in `apps/backend/src/domains` 
-- API specific Zod schemas and TypeScript types, eg. DTOs, and request and response schemas are defined in `packages/api/src/domains` and are used in the Fastify routes
+#### Correct "@/..." alias usage inside an app:
+```ts
+// In apps/frontend/src/components/UserProfile.tsx
+import { fetchUser } from '@/lib/api'
+import { UserAvatar } from '@/components/UserAvatar'
+```
 
-## Domains and Types Overview
+## Naming Conventions
 
-- Domains are defined per business concept (e.g., account, user, chat, etc.)
-- Each domain includes `schema.ts`, `repository.ts`, and `use-cases.ts`
-- Each domain has a sub folder for test called `__tests__`, containing `use-cases.test.ts` and `mock-repository.ts`
-- Shared enums, IDs, and utility types live under `packages/common/src/types`
+- Schemas: `<Domain>Schema` (e.g., `UserSchema`)  
+- Use-cases: functions named with verbs (e.g., `createUser`, `updateProduct`)  
+- Repositories: `<Domain>Repository` (e.g., `UserRepository`)  
+- Routes: domain-scoped files like `apps/api/src/domains/user/routes.ts`  
 
-## Code Style
+## Code Style Hints
 
-- Use **single quotes**
-- **No semicolons**
-- Favor explicit, readable, and composable code
+- Use single quotes  
+- No semicolons  
+- Favor explicit, readable, and composable code  
 - Write modular logic in small functions where appropriate
-
-## Suggestions for GitHub Copilot
-
-- Always import shared schemas, types, and interfaces from `packages/common` using alias `@workspace/common/domain` and `@workspace/common/types`
-- Use `@workspace/common` for shared logic
-- Suggest functions that reflect the repository pattern (e.g., `findById`, `findPaginated`, `createOne`)
-- Use `zod` schemas from `@workspace/common` for validation and type inference
-- When writing API routes, prefer using domain-scoped files like `apps/backend/src/user/routes.ts`
-- Use aliases like `@/app` or `@/components` in frontend when resolving imports
-- Maintain consistent naming: e.g., `createDocumentService`, `DocumentSchema`, `DocumentRepository`, etc.
