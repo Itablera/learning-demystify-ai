@@ -5,12 +5,11 @@ import {
   deleteConversation, 
   generateChatResponse, 
   getConversation, 
-  listConversations 
-} from '@workspace/domains'
+  listConversations} from '@workspace/domains'
 import { InMemoryChatRepository } from './repository'
 import { OllamaAIServiceAdapter } from './service'
 import { RoutesProvider } from '@/index'
-import { CreateConversationRequestSchema, ConversationResponseSchema, ConversationsListResponseSchema, IdParamsSchema, MessagesListResponseSchema, AddMessageRequestSchema, MessageResponseSchema, ChatCompletionRequestSchema, ChatCompletionResponseSchema, AddDocumentRequestSchema, AddDocumentResponseSchema, BaseResponseSchema, DataResponseSchema } from '@workspace/api'
+import { CreateConversationRequestSchema, ConversationResponseSchema, ConversationsListResponseSchema, IdParamsSchema, MessagesListResponseSchema, AddMessageRequestSchema, MessageResponseSchema, ChatCompletionRequestSchema, ChatCompletionResponseSchema, AddDocumentRequestSchema, AddDocumentResponseSchema, BaseResponseSchema } from '@workspace/api'
 
 // Create a single repository instance to be used across all routes
 const chatRepository = new InMemoryChatRepository()
@@ -211,37 +210,73 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
         // Start streaming the AI response
         const streamGenerator = aiService.streamCompletion(conversation.messages, retrievalResults)
         let fullResponse = ''
+        let lastUpdateTime = Date.now()
+        const updateInterval = 500 // Update repository every 500ms instead of every chunk
         
-        // Stream each chunk
-        for await (const chunk of streamGenerator) {
-          fullResponse += chunk
+        try {
+          // Stream each chunk with improved batching
+          for await (const chunk of streamGenerator) {
+            fullResponse += chunk
+            
+            // Send the chunk to the client immediately
+            const event = `data: ${JSON.stringify({
+              id: messageId,
+              content: chunk,
+              done: false
+            })}\n\n`
+            
+            reply.raw.write(event)
+            
+            // Update the message in the repository periodically rather than per chunk
+            const currentTime = Date.now()
+            if (currentTime - lastUpdateTime >= updateInterval) {
+              await chatRepository.updateConversation(id, {
+                messages: conversation.messages.map(m => 
+                  m.id === messageId ? { ...m, content: fullResponse } : m
+                )
+              })
+              lastUpdateTime = currentTime
+            }
+          }
           
-          // Send the chunk to the client
-          const event = `data: ${JSON.stringify({
-            id: messageId,
-            content: chunk,
-            done: false
-          })}\n\n`
-          
-          reply.raw.write(event)
-          
-          // Update the message content in the repository
+          // Final update to the repository
           await chatRepository.updateConversation(id, {
             messages: conversation.messages.map(m => 
               m.id === messageId ? { ...m, content: fullResponse } : m
             )
           })
+          
+          // Send the final chunk with done: true
+          const finalEvent = `data: ${JSON.stringify({
+            id: messageId,
+            content: '',
+            done: true
+          })}\n\n`
+          
+          reply.raw.write(finalEvent)
+          reply.raw.end()
+        } catch (error) {
+          console.error('Streaming error:', error)
+          
+          // Send error event to client
+          const errorEvent = `data: ${JSON.stringify({
+            id: messageId,
+            error: error instanceof Error ? error.message : 'Unknown streaming error',
+            done: true
+          })}\n\n`
+          
+          reply.raw.write(errorEvent)
+          reply.raw.end()
+          
+          // Save partial response in the repository
+          if (fullResponse) {
+            await chatRepository.updateConversation(id, {
+              messages: conversation.messages.map(m => 
+                m.id === messageId ? { ...m, content: `${fullResponse} [Streaming interrupted]` } : m
+              )
+            })
+          }
         }
-        
-        // Send the final chunk with done: true
-        const finalEvent = `data: ${JSON.stringify({
-          id: messageId,
-          content: '',
-          done: true
-        })}\n\n`
-        
-        reply.raw.write(finalEvent)
-        reply.raw.end()
         
         return reply
       }

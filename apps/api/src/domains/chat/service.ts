@@ -213,6 +213,7 @@ export class OllamaAIServiceAdapter implements AIServiceAdapter {
     
     // Set up our streaming chain
     let chain: RunnableSequence
+    let streamPromise: Promise<AsyncIterable<string>>
     
     if (retrievalResults && retrievalResults.length > 0) {
       // RAG approach with retrieval results as context
@@ -224,14 +225,10 @@ export class OllamaAIServiceAdapter implements AIServiceAdapter {
         new StringOutputParser()
       ])
       
-      const stream = await chain.stream({
+      streamPromise = chain.stream({
         context,
         question,
       })
-      
-      for await (const chunk of stream) {
-        yield chunk
-      }
     } else {
       // Standard approach without retrieval
       chain = RunnableSequence.from([
@@ -240,13 +237,49 @@ export class OllamaAIServiceAdapter implements AIServiceAdapter {
         new StringOutputParser()
       ])
       
-      const stream = await chain.stream({
+      streamPromise = chain.stream({
         question,
       })
+    }
+
+    // Process stream with timeout handling
+    try {
+      const stream = await Promise.race([
+        streamPromise,
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Initial stream connection timeout')), 10000)
+        )
+      ]) as AsyncIterable<string>
       
-      for await (const chunk of stream) {
-        yield chunk
+      // Create a more efficient processing loop with buffer
+      const iterator = stream[Symbol.asyncIterator]()
+      let result: IteratorResult<string, void>
+      
+      // Process chunks with individual timeouts
+      while (true) {
+        try {
+          result = await Promise.race([
+            iterator.next(),
+            new Promise<never>((_, reject) => 
+              setTimeout(() => reject(new Error('Chunk processing timeout')), 5000)
+            )
+          ]) as IteratorResult<string, void>
+          
+          if (result.done) break
+          yield result.value
+          
+        } catch (error) {
+          // If a timeout occurs, yield a special message and continue
+          if (error instanceof Error && error.message.includes('timeout')) {
+            console.warn('Stream chunk timed out, continuing with next chunk')
+            continue
+          }
+          throw error
+        }
       }
+    } catch (error) {
+      console.error('Stream error:', error)
+      yield `Error in stream processing: ${error instanceof Error ? error.message : 'Unknown error'}`
     }
   }
 }
