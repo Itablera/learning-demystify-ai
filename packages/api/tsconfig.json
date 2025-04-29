@@ -3,10 +3,10 @@
   "compilerOptions": {
     "outDir": "dist",
     "baseUrl": ".",
+    "rootDir": "src",
     "paths": {
       "@/*": ["./src/*"],
-      "@workspace/common/*": ["../../packages/common/src/*"],
-      "@packages/api/*": ["../../packages/api/src/*"],
+      "@workspace/common/*": ["../common/src/*"],
     }
   },
   "include": ["src/**/*.ts"],

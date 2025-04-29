@@ -36,6 +36,7 @@
   "devDependencies": {
     "@types/node": "^20",
     "@workspace/common": "workspace:*",
+    "@workspace/api": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "tsx": "^4.7.0",
     "typescript": "^5.7.3"

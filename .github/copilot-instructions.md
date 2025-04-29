@@ -29,16 +29,14 @@ Each **domain** has its own folder under `apps/backend/src/domains`, mirroring t
 
 Example:
 ```
-apps/backend/src/domains/chat/
+apps/api/src/domains/chat/
   routes.ts         # Fastify routes
-  controller.ts     # HTTP/controller-level logic
   repository.ts     # Repository implementation
-  use-cases.ts      # Implementation of application use cases
-  schema.ts         # (Optional) Additional Zod schemas for validation
 ```
 
 - Shared Zod schemas, TypeScript types, and repository interfaces are defined in `packages/common/src/domains`
 - Backend-specific logic (database, langchain operations, etc.) implements those interfaces and orchestrates domain operations. These implementations are located in `apps/backend/src/domains` 
+- API specific Zod schemas and TypeScript types, eg. DTOs, and request and response schemas are defined in `packages/api/src/domains` and are used in the Fastify routes
 
 ## Domains and Types Overview
 
