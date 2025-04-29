@@ -1,12 +1,12 @@
 import { FastifyInstance } from 'fastify'
-import { chatRoutes } from '@/domains/chat/routes'
+import { healthRoutes } from '@/domains/health/routes'
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Register API routes with prefix
   fastify.register(async (app) => {
 
-    // Chat domain routes
-    app.register(chatRoutes, { prefix: '/chat' })
+    // Health domain routes
+    app.register(healthRoutes, { prefix: '/health' })
     
     // Add other domain routes here as your application grows
     // e.g., app.register(productRoutes, { prefix: '/products' })
