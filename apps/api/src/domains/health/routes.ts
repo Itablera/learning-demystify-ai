@@ -1,5 +1,5 @@
 import { MockHealthRepository } from './repository'
-import { HealthResponseSchema } from '@workspace/api/domains'
+import { HealthResponseSchema } from '@workspace/api'
 import { RoutesProvider } from '@/index'
 
 export async function healthRoutes(routes: RoutesProvider) {

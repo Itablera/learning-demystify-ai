@@ -87,7 +87,7 @@ importers:
       '@workspace/api':
         specifier: workspace:*
         version: link:../../packages/api
-      '@workspace/common':
+      '@workspace/domains':
         specifier: workspace:*
         version: link:../../packages/common
       '@workspace/typescript-config':
@@ -268,7 +268,7 @@ importers:
         specifier: ^3.24.2
         version: 3.24.2
     devDependencies:
-      '@workspace/common':
+      '@workspace/domains':
         specifier: workspace:*
         version: link:../common
       '@workspace/typescript-config':

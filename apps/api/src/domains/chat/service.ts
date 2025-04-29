@@ -1,4 +1,4 @@
-import { Message, RetrievalResult } from '@workspace/common/domains'
+import { Message, RetrievalResult } from '@workspace/domains'
 
 /**
  * Interface for AI service adapters that can generate chat completions

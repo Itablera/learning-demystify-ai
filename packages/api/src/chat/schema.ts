@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { MessageRoleEnum, MessageSchema, ConversationSchema, RetrievalResultSchema, VectorSearchOptionsSchema } from '@workspace/common/domains'
+import { MessageRoleEnum, MessageSchema, ConversationSchema, RetrievalResultSchema, VectorSearchOptionsSchema } from '@workspace/domains'
 
 // Request schemas
 export const CreateConversationRequestSchema = z.object({

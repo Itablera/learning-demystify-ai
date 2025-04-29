@@ -6,8 +6,8 @@ This file contains concise instructions tailored for GitHub Copilot to generate 
 
 - Monorepo managed using Turborepo  
 - Package manager: `pnpm`  
-- Domains live under `packages/common/src/domains` (core logic) and `apps/api/src/domains` (backend implementation)  
-- Shared utility types and enums live in `packages/common/src/types`  
+- Domains live under `packages/domains/src` (core logic) and `apps/api/src/domains` (backend implementation)  
+- Shared utility types and enums live in `packages/types/src`  
 - Backend-specific implementations (e.g., repositories, routes) are in `apps/api/src/domains` 
 
 ## Architectural Guidelines
@@ -16,19 +16,19 @@ The codebase follows Domain-Driven Design (DDD) principles and the Repository Pa
 
 ## Schema vs DTO Distinction
 
-- Core domain schemas and types are defined in `@workspace/common`  
+- Core domain schemas and types are defined in `@workspace/domains`  
 - API-facing DTO schemas (request/response shapes) are defined in `@workspace/api`  
 
 ## Package and Import Conventions
 
-- **Inside packages** (e.g., `packages/common`, `packages/api`):  
+- **Inside packages** (e.g., `packages/domains`, `packages/types`, `packages/api`):  
   - **Always use relative imports** (e.g., `./foo`, `../bar`) for files within the same package boundary.  
-  - **Never use aliases like `@/`, `@workspace/common` or `@workspace/api`** for intra-package imports.  
-  - **Only use `@workspace/common` or `@workspace/api`** when importing *across* packages.
+  - **Never use aliases like `@/`, `@workspace/domains` or `@workspace/api`** for intra-package imports.  
+  - **Only use `@workspace/domains` or `@workspace/api`** when importing *across* packages.
 
 - **Inside apps** (e.g., `apps/api`, `apps/frontend`):  
   - **Use the `@/` alias** (e.g., `@/domains/user/routes`) for internal imports within the same app.
-  - **Use package imports** (e.g., `@workspace/common` or `@workspace/api`) for shared schemas, logic or types.
+  - **Use package imports** (e.g., `@workspace/domains` or `@workspace/api`) for shared schemas, logic or types.
 
 - **Never use relative imports that cross domain or package boundaries.**
 
@@ -36,7 +36,7 @@ The codebase follows Domain-Driven Design (DDD) principles and the Repository Pa
 
 #### Correct relative imports inside a package:
 ```ts
-// In packages/common/src/domains/user/index.ts
+// In packages/domains/src/user/index.ts
 import { UserSchema } from './schema'
 import { validateUser } from '../utils/validateUser'
 ```
@@ -44,7 +44,7 @@ import { validateUser } from '../utils/validateUser'
 #### Correct cross-package imports:
 ```ts
 // In apps/api/src/domains/user/create.ts
-import { UserSchema } from '@workspace/common'
+import { UserSchema } from '@workspace/domains'
 import { CreateUserRequestSchema } from '@workspace/api'
 ```
 

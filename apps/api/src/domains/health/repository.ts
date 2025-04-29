@@ -1,4 +1,4 @@
-import { Health, HealthRepository } from "@workspace/common/domains";
+import { Health, HealthRepository } from "@workspace/domains";
 
 export class MockHealthRepository implements HealthRepository {
   private health: Health = {

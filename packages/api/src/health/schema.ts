@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { DataResponseSchema } from '../http/schema'
-import { HealthSchema } from '@workspace/common/domains'
+import { HealthSchema } from '@workspace/domains'
 
 /**
  * Health check response schema based on the Health domain schema

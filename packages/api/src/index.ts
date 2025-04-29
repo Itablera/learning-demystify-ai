@@ -1,4 +1,3 @@
-// Export all types from the submodules
-export * from './domains'
-
-export * from './types'
+export * from './health'
+export * from './chat'
+export * from './http'

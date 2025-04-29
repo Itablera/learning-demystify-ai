@@ -1,5 +1,5 @@
 {
-  "name": "@workspace/common",
+  "name": "@workspace/domains",
   "version": "0.0.0",
   "private": true,
   "main": "dist/index.js",
@@ -7,8 +7,7 @@
     "access": "public"
   },
   "exports": {
-    "./domains": "./src/domains/index.ts",
-    "./types": "./src/types/index.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "build": "tsc",
@@ -23,6 +22,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@workspace/typescript-config": "workspace:*"
+    "@workspace/typescript-config": "workspace:*",
+    "@workspace/types": "workspace:*"
   }
 }

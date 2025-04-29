@@ -6,7 +6,7 @@ import {
   MessageRole, 
   RetrievalResult, 
   VectorSearchOptions 
-} from '@workspace/common/domains'
+} from '@workspace/domains'
 
 /**
  * In-memory implementation of the ChatRepository for development and testing.

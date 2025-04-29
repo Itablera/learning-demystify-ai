@@ -3,11 +3,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "baseUrl": ".",
-    "lib": ["ESNext"],
     "paths": {
-      "@/*": ["./src/*"],
-      "@workspace/domains": ["../../packages/domains/src/index.ts"],
-      "@workspace/api": ["../../packages/api/src/index.ts"],
+      "@workspace/types/*": ["../types/src/*"]
     }
   },
   "include": ["src/**/*.ts"],

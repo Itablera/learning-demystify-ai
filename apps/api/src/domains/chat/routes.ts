@@ -6,12 +6,11 @@ import {
   generateChatResponse, 
   getConversation, 
   listConversations 
-} from '@workspace/common/domains'
+} from '@workspace/domains'
 import { InMemoryChatRepository } from './repository'
 import { MockAIServiceAdapter } from './service'
 import { RoutesProvider } from '@/index'
-import { CreateConversationRequestSchema, ConversationResponseSchema, ConversationsListResponseSchema, IdParamsSchema, MessagesListResponseSchema, AddMessageRequestSchema, MessageResponseSchema, ChatCompletionRequestSchema, ChatCompletionResponseSchema, AddDocumentRequestSchema, AddDocumentResponseSchema } from '@workspace/api/domains'
-import { BaseResponseSchema } from '@workspace/api/domains/http/schema'
+import { CreateConversationRequestSchema, ConversationResponseSchema, ConversationsListResponseSchema, IdParamsSchema, MessagesListResponseSchema, AddMessageRequestSchema, MessageResponseSchema, ChatCompletionRequestSchema, ChatCompletionResponseSchema, AddDocumentRequestSchema, AddDocumentResponseSchema, BaseResponseSchema } from '@workspace/api'
 
 // Create a single repository instance to be used across all routes
 const chatRepository = new InMemoryChatRepository()

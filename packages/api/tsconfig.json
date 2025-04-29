@@ -4,7 +4,7 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@workspace/common/*": ["../common/src/*"]
+      "@workspace/domains": ["../domains/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts"],
