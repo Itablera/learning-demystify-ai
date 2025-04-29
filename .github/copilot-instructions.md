@@ -16,19 +16,19 @@ The codebase follows Domain-Driven Design (DDD) principles and the Repository Pa
 
 ## Schema vs DTO Distinction
 
-- Core domain schemas and types are defined in `@workspace/do-common`  
-- API-facing DTO schemas (request/response shapes) are defined in `@workspace/do-api`  
+- Core domain schemas and types are defined in `@workspace/common`  
+- API-facing DTO schemas (request/response shapes) are defined in `@workspace/api`  
 
 ## Package and Import Conventions
 
 - **Inside packages** (e.g., `packages/common`, `packages/api`):  
   - **Always use relative imports** (e.g., `./foo`, `../bar`) for files within the same package boundary.  
-  - **Never use aliases like `@/`, `@workspace/do-common` or `@workspace/do-api`** for intra-package imports.  
-  - **Only use `@workspace/do-common` or `@workspace/do-api`** when importing *across* packages.
+  - **Never use aliases like `@/`, `@workspace/common` or `@workspace/api`** for intra-package imports.  
+  - **Only use `@workspace/common` or `@workspace/api`** when importing *across* packages.
 
 - **Inside apps** (e.g., `apps/api`, `apps/frontend`):  
   - **Use the `@/` alias** (e.g., `@/domains/user/routes`) for internal imports within the same app.
-  - **Use package imports** (e.g., `@workspace/do-common`) for shared logic or types.
+  - **Use package imports** (e.g., `@workspace/common` or `@workspace/api`) for shared schemas, logic or types.
 
 - **Never use relative imports that cross domain or package boundaries.**
 
@@ -44,8 +44,8 @@ import { validateUser } from '../utils/validateUser'
 #### Correct cross-package imports:
 ```ts
 // In apps/api/src/domains/user/create.ts
-import { UserSchema } from '@workspace/do-common'
-import { CreateUserRequestSchema } from '@workspace/do-api'
+import { UserSchema } from '@workspace/common'
+import { CreateUserRequestSchema } from '@workspace/api'
 ```
 
 #### Correct "@/..." alias usage inside an app:
