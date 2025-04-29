@@ -9,8 +9,8 @@ describe('HealthUseCases', () => {
   })
   
 
-  it('should perform a health check', () => {
-    const health = repository.status()
+  it('should perform a health check', async () => {
+    const health = await repository.status()
     expect(health).toEqual({
       status: 'ok',
     })

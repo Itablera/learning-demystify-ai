@@ -1,22 +1,24 @@
-import { FastifyInstance } from "fastify";
-import { MockHealthRepository } from "./repository";
+import { MockHealthRepository } from './repository'
+import { HealthResponseSchema } from '@packages/api/domains'
+import { RoutesProvider } from '@/index'
 
-export async function healthRoutes(fastify: FastifyInstance) {
-    const healthRepository = new MockHealthRepository();
-    fastify.get('/', {
+export async function healthRoutes(routes: RoutesProvider) {
+    const healthRepository = new MockHealthRepository()
+
+    routes.get('/', {
         schema: {
             response: {
-                200: {
-                    type: 'object',
-                    properties: {
-                        status: { type: 'string' },
-                    },
-                },
+                200: HealthResponseSchema,
             },
         },
         handler: async (request, reply) => {
-            const health = await healthRepository.status();
-            reply.code(200).send(health);
+            const healthData = await healthRepository.status()
+            const response = {
+                success: true,
+                timestamp: new Date().toISOString(),
+                data: healthData,
+            }
+            reply.send(response)
         },
-    });
+    })
 }

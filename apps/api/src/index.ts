@@ -11,6 +11,7 @@ dotenv.config()
 const fastify = Fastify({
   logger: config.logger
 }).withTypeProvider<ZodTypeProvider>()
+export type RoutesProvider = typeof fastify
 
 // Add schema validator and serializer
 fastify.setValidatorCompiler(validatorCompiler);
