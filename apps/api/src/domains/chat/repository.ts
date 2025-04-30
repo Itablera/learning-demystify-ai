@@ -13,7 +13,8 @@ import {
  */
 export class InMemoryChatRepository implements ChatRepository {
   private conversations: Map<string, Conversation> = new Map()
-  private documents: Map<string, { content: string; metadata?: Record<string, any> }> = new Map()
+  private documents: Map<string, { content: string; metadata?: Record<string, unknown> }> =
+    new Map()
 
   // Conversation management
   async getConversation(id: string): Promise<Conversation | null> {
@@ -143,7 +144,7 @@ export class InMemoryChatRepository implements ChatRepository {
   }
 
   // Embedding management
-  async addDocument(content: string, metadata?: Record<string, any>): Promise<string> {
+  async addDocument(content: string, metadata?: Record<string, unknown>): Promise<string> {
     const id = uuidv4()
     this.documents.set(id, { content, metadata })
     return id

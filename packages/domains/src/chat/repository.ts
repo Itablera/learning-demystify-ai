@@ -16,5 +16,5 @@ export interface ChatRepository {
   vectorSearch(query: string, options?: VectorSearchOptions): Promise<RetrievalResult[]>
 
   // Embedding management
-  addDocument(content: string, metadata?: Record<string, any>): Promise<string>
+  addDocument(content: string, metadata?: Record<string, unknown>): Promise<string>
 }

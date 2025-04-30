@@ -47,8 +47,7 @@ export async function addMessage(
 export async function generateChatResponse(
   chatRepository: ChatRepository,
   conversationId: string,
-  message: string,
-  systemPrompt?: string
+  message: string
 ): Promise<{
   retrievalResults: RetrievalResult[]
   messageId: string
@@ -79,7 +78,7 @@ export async function generateChatResponse(
 export async function addDocument(
   chatRepository: ChatRepository,
   content: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<string> {
   return chatRepository.addDocument(content, metadata)
 }

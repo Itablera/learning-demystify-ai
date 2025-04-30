@@ -157,9 +157,6 @@ export class OllamaAIServiceAdapter implements AIServiceAdapter {
     retrievalResults?: RetrievalResult[]
   ): Promise<string> {
     const question = this.getLatestUserMessage(messages)
-    const chatHistory = this.convertMessagesToLangChainFormat(
-      messages.slice(0, -1) // Exclude the latest message as we'll use it explicitly
-    )
 
     // Set up our generation chain
     let chain: RunnableSequence
@@ -200,9 +197,6 @@ export class OllamaAIServiceAdapter implements AIServiceAdapter {
     retrievalResults?: RetrievalResult[]
   ): AsyncGenerator<string, void, unknown> {
     const question = this.getLatestUserMessage(messages)
-    const chatHistory = this.convertMessagesToLangChainFormat(
-      messages.slice(0, -1) // Exclude the latest message as we'll use it explicitly
-    )
 
     // Set up our streaming chain
     let chain: RunnableSequence

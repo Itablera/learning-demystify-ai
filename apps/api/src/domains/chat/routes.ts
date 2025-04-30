@@ -192,7 +192,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async (request, reply) => {
       const { id } = request.params
-      const { message, systemPrompt } = request.body
+      const { message } = request.body
 
       // Check if the client requested a streaming response
       const acceptHeader = request.headers.accept || ''
@@ -202,8 +202,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       const { retrievalResults, messageId } = await generateChatResponse(
         chatRepository,
         id,
-        message,
-        systemPrompt
+        message
       )
 
       // Get the conversation to access all messages for context
@@ -351,7 +350,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       },
     },
     async request => {
-      const { content, role } = request.body
+      const { content } = request.body
       const generation = await aiService.simpleChat(content)
 
       return {
