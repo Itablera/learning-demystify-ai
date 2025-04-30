@@ -28,7 +28,7 @@ export const RetrievalResultSchema = z.object({
   id: z.string(),
   content: z.string(),
   metadata: z.record(z.string(), z.any()).optional(),
-  score: z.number().optional(),
+  score: z.number().default(0),
 })
 export type RetrievalResult = z.infer<typeof RetrievalResultSchema>
 

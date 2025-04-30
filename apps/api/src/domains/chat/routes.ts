@@ -1,7 +1,10 @@
 import { ChatUseCases } from '@workspace/domains'
-import { InMemoryChatRepository } from './repository'
-import { OllamaAIService } from './service'
+import { InMemoryChatRepository } from './chat-repository'
+import { QdrantVectorRepository } from './vector-repository'
+import { OllamaAIRepository } from './ai-repository'
+import { OllamaEmbeddingService } from './embedding-service'
 import { RoutesProvider } from '@/index'
+import { env } from '@/env'
 import {
   CreateConversationRequestSchema,
   ConversationResponseSchema,
@@ -17,20 +20,32 @@ import {
   BaseResponseSchema,
 } from '@workspace/api'
 
-// Create a single repository instance to be used across all routes
-const chatRepository = new InMemoryChatRepository()
-
-// Create an instance of the ChatUseCases with the repository
-const chatUseCases = new ChatUseCases(chatRepository)
-
-// Create an instance of the OllamaAIServiceAdapter
-// You can configure the model name and API URL based on your environment
-const aiService = new OllamaAIService(
-  process.env.OLLAMA_MODEL || 'llama3',
-  process.env.OLLAMA_API_URL || 'http://localhost:11434'
+// Create embedding service
+const embeddingService = new OllamaEmbeddingService(
+  env.EMBEDDING_MODEL,
+  env.OLLAMA_API_URL,
+  env.EMBEDDING_DIMENSION
 )
 
+// Create repository and service instances to be used across all routes
+const chatRepository = new InMemoryChatRepository()
+const vectorRepository = new QdrantVectorRepository(env.QDRANT_URL, 'documents', embeddingService)
+const aiRepository = new OllamaAIRepository(env.OLLAMA_MODEL, env.OLLAMA_API_URL)
+
+// Create an instance of the ChatUseCases with all dependencies
+const chatUseCases = new ChatUseCases(chatRepository, vectorRepository, aiRepository)
+
 export async function chatRoutes(routes: RoutesProvider): Promise<void> {
+  // Initialize the Qdrant collection
+  try {
+    await vectorRepository.initialize()
+    console.log('Qdrant vector repository initialized successfully')
+  } catch (error) {
+    console.error('Failed to initialize Qdrant vector repository:', error)
+    console.warn('Using in-memory vector repository as fallback would happen here in production')
+    // In a production app, you might want to fall back to InMemoryVectorRepository here
+  }
+
   // Create a new conversation
   routes.post(
     '/conversations',
@@ -193,14 +208,11 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       const acceptHeader = request.headers.accept || ''
       const wantsStream = acceptHeader.includes('text/event-stream')
 
-      // Generate the chat response with RAG
-      const { retrievalResults, messageId } = await chatUseCases.generateChatResponse(id, message)
-
-      // Get the conversation to access all messages for context
-      const conversation = await chatRepository.getConversation(id)
-      if (!conversation) {
-        throw new Error(`Conversation with ID ${id} not found`)
-      }
+      const { retrievalResults, messages } = await chatUseCases.addMessageAndRetrieveContext(
+        id,
+        message
+      )
+      const { id: resultMessageId } = await chatUseCases.addMessage(id, 'assistant', '')
 
       // If streaming is requested, set up SSE response
       if (wantsStream) {
@@ -211,7 +223,8 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
         })
 
         // Start streaming the AI response
-        const streamGenerator = aiService.streamCompletion(conversation.messages, retrievalResults)
+        const streamGenerator = aiRepository.streamCompletion(messages, retrievalResults)
+
         let fullResponse = ''
         let lastUpdateTime = Date.now()
         const updateInterval = 500 // Update repository every 500ms instead of every chunk
@@ -223,7 +236,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
 
             // Send the chunk to the client immediately
             const event = `data: ${JSON.stringify({
-              id: messageId,
+              id,
               content: chunk,
               done: false,
             })}\n\n`
@@ -234,8 +247,8 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
             const currentTime = Date.now()
             if (currentTime - lastUpdateTime >= updateInterval) {
               await chatRepository.updateConversation(id, {
-                messages: conversation.messages.map(m =>
-                  m.id === messageId ? { ...m, content: fullResponse } : m
+                messages: messages.map(m =>
+                  m.id === resultMessageId ? { ...m, content: fullResponse } : m
                 ),
               })
               lastUpdateTime = currentTime
@@ -244,14 +257,14 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
 
           // Final update to the repository
           await chatRepository.updateConversation(id, {
-            messages: conversation.messages.map(m =>
-              m.id === messageId ? { ...m, content: fullResponse } : m
+            messages: messages.map(m =>
+              m.id === resultMessageId ? { ...m, content: fullResponse } : m
             ),
           })
 
           // Send the final chunk with done: true
           const finalEvent = `data: ${JSON.stringify({
-            id: messageId,
+            id: resultMessageId,
             content: '',
             done: true,
           })}\n\n`
@@ -263,7 +276,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
 
           // Send error event to client
           const errorEvent = `data: ${JSON.stringify({
-            id: messageId,
+            id: resultMessageId,
             error: error instanceof Error ? error.message : 'Unknown streaming error',
             done: true,
           })}\n\n`
@@ -274,8 +287,8 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
           // Save partial response in the repository
           if (fullResponse) {
             await chatRepository.updateConversation(id, {
-              messages: conversation.messages.map(m =>
-                m.id === messageId
+              messages: messages.map(m =>
+                m.id === resultMessageId
                   ? { ...m, content: `${fullResponse} [Streaming interrupted]` }
                   : m
               ),
@@ -287,20 +300,18 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       }
 
       // For non-streaming responses, generate the full response
-      const aiResponse = await aiService.generateCompletion(conversation.messages, retrievalResults)
+      const aiResponse = await aiRepository.generateCompletion(messages, retrievalResults)
 
       // Update the assistant message with the full response
       await chatRepository.updateConversation(id, {
-        messages: conversation.messages.map(m =>
-          m.id === messageId ? { ...m, content: aiResponse } : m
-        ),
+        messages: messages.map(m => (m.id === resultMessageId ? { ...m, content: aiResponse } : m)),
       })
 
       // Return the message ID and retrieval results
       return {
         success: true,
         data: {
-          messageId,
+          messageId: resultMessageId,
           retrievalResults,
         },
       }
@@ -341,8 +352,8 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       },
     },
     async request => {
-      const { content, role } = request.body
-      const generation = await aiService.simpleChat(content)
+      const { content } = request.body
+      const generation = await aiRepository.simpleChat(content)
 
       return {
         success: true,
@@ -363,7 +374,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       },
     },
     async () => {
-      const generation = await aiService.sayHi()
+      const generation = await aiRepository.sayHi()
 
       return {
         success: true,
