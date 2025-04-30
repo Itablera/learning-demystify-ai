@@ -3,7 +3,6 @@ import {
   ChatRepository,
   Conversation,
   Message,
-  MessageRole,
   RetrievalResult,
   VectorSearchOptions,
 } from '@workspace/domains'
