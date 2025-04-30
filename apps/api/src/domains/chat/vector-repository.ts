@@ -2,12 +2,19 @@ import { VectorRepository, RetrievalResult, VectorSearchOptions } from '@workspa
 import { QdrantClient } from '@qdrant/js-client-rest'
 import { randomUUID } from 'crypto'
 import { env } from '@/env'
-import { EmbeddingService, OllamaEmbeddingService, MockEmbeddingService } from './embedding-service'
+import {
+  EmbeddingService,
+  LangChainEmbeddingService,
+  MockEmbeddingService,
+} from './embedding-service'
+import { QdrantVectorStore } from '@langchain/qdrant'
+import { Document } from '@langchain/core/documents'
 
 export class QdrantVectorRepository implements VectorRepository {
   private client: QdrantClient
   private collectionName: string
   private embeddingService: EmbeddingService
+  private vectorStore: QdrantVectorStore | null = null
 
   constructor(
     connectionString: string = env.QDRANT_URL,
@@ -16,11 +23,12 @@ export class QdrantVectorRepository implements VectorRepository {
   ) {
     this.client = new QdrantClient({ url: connectionString })
     this.collectionName = collectionName
-    this.embeddingService = embeddingService || new OllamaEmbeddingService()
+    this.embeddingService = embeddingService || new LangChainEmbeddingService()
   }
 
   /**
    * Initialize the Qdrant collection if it doesn't exist
+   * and setup the LangChain vector store
    */
   async initialize(): Promise<void> {
     try {
@@ -42,6 +50,18 @@ export class QdrantVectorRepository implements VectorRepository {
       } else {
         console.log(`Qdrant collection already exists: ${this.collectionName}`)
       }
+
+      // Setup LangChain vectorstore if embedding service is LangChain-based
+      if (this.embeddingService instanceof LangChainEmbeddingService) {
+        this.vectorStore = await QdrantVectorStore.fromExistingCollection(
+          // @ts-expect-error - The LangChain type expects a specific property not easily accessible
+          this.embeddingService.embeddings,
+          {
+            url: env.QDRANT_URL,
+            collectionName: this.collectionName,
+          }
+        )
+      }
     } catch (error) {
       console.error('Failed to initialize Qdrant collection:', error)
       throw new Error(
@@ -55,21 +75,34 @@ export class QdrantVectorRepository implements VectorRepository {
    */
   async vectorSearch(query: string, options?: VectorSearchOptions): Promise<RetrievalResult[]> {
     try {
-      // Get the embedding for the query
+      // Set defaults for options
+      const limit = options?.limit || 5
+      const scoreThreshold = options?.threshold || 0.7
+
+      // If we have a LangChain vectorstore instance, use it for more efficient search
+      if (this.vectorStore && this.embeddingService instanceof LangChainEmbeddingService) {
+        const results = await this.vectorStore.similaritySearchWithScore(query, limit)
+
+        return results
+          .filter(([_, score]) => score >= scoreThreshold)
+          .map(([doc, score]) => ({
+            id: doc.metadata.id || 'unknown',
+            content: doc.pageContent,
+            metadata: doc.metadata,
+            score,
+          }))
+      }
+
+      // Fallback to direct Qdrant client if LangChain vectorstore isn't available
       const queryEmbedding = await this.embeddingService.getEmbedding(query)
 
-      // Default limit if not specified
-      const limit = options?.limit || 5
-
-      // Search Qdrant for similar vectors
       const searchResults = await this.client.search(this.collectionName, {
         vector: queryEmbedding,
         limit,
         with_payload: true,
-        score_threshold: options?.threshold || 0.7, // Only return results above this score
+        score_threshold: scoreThreshold,
       })
 
-      // Map Qdrant results to RetrievalResults
       return searchResults.map(result => ({
         id: String(result.id),
         content: result.payload?.content as string,
@@ -87,26 +120,36 @@ export class QdrantVectorRepository implements VectorRepository {
    */
   async addDocument(content: string, metadata?: Record<string, unknown>): Promise<string> {
     try {
-      // Generate a unique ID for the document
-      const id = randomUUID()
+      // Generate a unique ID for the document if not provided
+      const id = metadata?.id ? String(metadata.id) : randomUUID()
+      const documentMetadata = { ...metadata, id }
 
-      // Get the embedding for the document
-      const embedding = await this.embeddingService.getEmbedding(content)
+      // If we have a LangChain vectorstore, use it
+      if (this.vectorStore && this.embeddingService instanceof LangChainEmbeddingService) {
+        const document = new Document({
+          pageContent: content,
+          metadata: documentMetadata,
+        })
 
-      // Add the document to Qdrant
-      await this.client.upsert(this.collectionName, {
-        points: [
-          {
-            id,
-            vector: embedding,
-            payload: {
-              content,
-              metadata: metadata || {},
-              timestamp: new Date().toISOString(),
+        await this.vectorStore.addDocuments([document])
+      } else {
+        // Fallback to direct Qdrant client
+        const embedding = await this.embeddingService.getEmbedding(content)
+
+        await this.client.upsert(this.collectionName, {
+          points: [
+            {
+              id,
+              vector: embedding,
+              payload: {
+                content,
+                metadata: documentMetadata,
+                timestamp: new Date().toISOString(),
+              },
             },
-          },
-        ],
-      })
+          ],
+        })
+      }
 
       return id
     } catch (error) {

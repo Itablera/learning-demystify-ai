@@ -2,7 +2,7 @@ import { ChatUseCases } from '@workspace/domains'
 import { InMemoryChatRepository } from './chat-repository'
 import { QdrantVectorRepository } from './vector-repository'
 import { OllamaAIRepository } from './ai-repository'
-import { OllamaEmbeddingService } from './embedding-service'
+import { LangChainEmbeddingService } from './embedding-service'
 import { RoutesProvider } from '@/index'
 import { env } from '@/env'
 import {
@@ -20,8 +20,8 @@ import {
   BaseResponseSchema,
 } from '@workspace/api'
 
-// Create embedding service
-const embeddingService = new OllamaEmbeddingService(
+// Create embedding service with LangChain
+const embeddingService = new LangChainEmbeddingService(
   env.EMBEDDING_MODEL,
   env.OLLAMA_API_URL,
   env.EMBEDDING_DIMENSION

@@ -1,16 +1,16 @@
-import fetch from 'node-fetch'
 import { env } from '@/env'
+import { OllamaEmbeddings } from '@langchain/ollama'
 
 export interface EmbeddingService {
   getEmbedding(text: string): Promise<number[]>
+  embedBatch?(texts: string[]): Promise<number[][]>
 }
 
 /**
- * Embedding service using Ollama's embedding endpoint
+ * Embedding service using LangChain's OllamaEmbeddings class
  */
-export class OllamaEmbeddingService implements EmbeddingService {
-  private model: string
-  private baseUrl: string
+export class LangChainEmbeddingService implements EmbeddingService {
+  private embeddings: OllamaEmbeddings
   private dimension: number
 
   constructor(
@@ -18,35 +18,36 @@ export class OllamaEmbeddingService implements EmbeddingService {
     baseUrl: string = env.OLLAMA_API_URL,
     dimension: number = env.EMBEDDING_DIMENSION
   ) {
-    this.model = model
-    this.baseUrl = baseUrl
+    this.embeddings = new OllamaEmbeddings({
+      model,
+      baseUrl,
+    })
     this.dimension = dimension
   }
 
   /**
-   * Get an embedding for the given text using Ollama
+   * Get an embedding for the given text using LangChain Ollama integration
    */
   async getEmbedding(text: string): Promise<number[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/embeddings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: this.model,
-          prompt: text,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`Ollama API error: ${response.status}`)
-      }
-
-      const data = (await response.json()) as { embedding: number[] }
-      return data.embedding
+      return await this.embeddings.embedQuery(text)
     } catch (error) {
-      console.error('Error generating embedding:', error)
+      console.error('Error generating embedding with LangChain:', error)
       // Fallback to random embedding in case of failure
       return this.getRandomEmbedding()
+    }
+  }
+
+  /**
+   * Embed multiple texts at once (more efficient)
+   */
+  async embedBatch(texts: string[]): Promise<number[][]> {
+    try {
+      return await this.embeddings.embedDocuments(texts)
+    } catch (error) {
+      console.error('Error batch embedding with LangChain:', error)
+      // Fallback to random embeddings in case of failure
+      return texts.map(() => this.getRandomEmbedding())
     }
   }
 
