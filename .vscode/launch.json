@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "cwd": "${workspaceFolder}/apps/api",
+      "command": "pnpm run dev",
+      "name": "Run backend",
+      "request": "launch",
+      "type": "node-terminal"
+    },
+    {
+      "cwd": "${workspaceFolder}/packages/domains",
+      "command": "pnpm run test",
+      "name": "Run common test",
+      "request": "launch",
+      "type": "node-terminal"
+    }
+  ]
+}

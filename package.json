@@ -2,18 +2,24 @@
   "name": "learning-demystify-ai",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter='!./apps/deepseek-r1-webgpu' --filter='!./apps/janus-pro-webgpu'",
     "dev:deepseek": "turbo dev --filter=deepseek-r1-webgpu",
     "dev:janus": "turbo dev --filter=janus-pro-webgpu",
     "dev:api": "turbo dev --filter=api",
-    "lint": "turbo lint",
+    "dev:web": "turbo dev --filter=web",
+    "test": "vitest",
+    "lint": "turbo lint --filter='!./apps/deepseek-r1-webgpu' --filter='!./apps/janus-pro-webgpu'",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
+    "@eslint/js": "^9.25.1",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
+    "eslint": "^9.25.1",
+    "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.5.1",
     "turbo": "^2.4.2",
     "typescript": "5.7.3"
