@@ -11,10 +11,20 @@ export interface ChatRepository {
   // Message management
   addMessage(conversationId: string, message: Omit<Message, 'id' | 'createdAt'>): Promise<Message>
   getMessages(conversationId: string): Promise<Message[]>
+}
 
+export interface VectorRepository {
   // Vector search for RAG
   vectorSearch(query: string, options?: VectorSearchOptions): Promise<RetrievalResult[]>
 
-  // Embedding management
+  // Document management
   addDocument(content: string, metadata?: Record<string, unknown>): Promise<string>
+}
+
+export interface AIRepository {
+  // Generate a completion based on messages and optional retrieval results
+  generateCompletion(messages: Message[], context?: RetrievalResult[]): Promise<string>
+
+  // Stream a completion based on messages and optional retrieval results
+  streamCompletion(messages: Message[], context?: RetrievalResult[]): AsyncGenerator<string>
 }

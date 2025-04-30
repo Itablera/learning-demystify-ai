@@ -1,36 +1,36 @@
-import { ChatRepository } from './repository'
+import { ChatRepository, VectorRepository, AIRepository } from './repository'
 import { Conversation, Message, MessageRole, RetrievalResult } from './schema'
 
 export class ChatUseCases {
-  private repository: ChatRepository
-
-  constructor(chatRepository: ChatRepository) {
-    this.repository = chatRepository
-  }
+  constructor(
+    private chatRepository: ChatRepository,
+    private vectorRepository: VectorRepository,
+    private aiRepository: AIRepository
+  ) {}
 
   // Use case to create a new conversation
   async createConversation(title: string): Promise<Conversation> {
-    return this.repository.createConversation(title)
+    return this.chatRepository.createConversation(title)
   }
 
   // Use case to retrieve a conversation by ID
   async getConversation(conversationId: string): Promise<Conversation | null> {
-    return this.repository.getConversation(conversationId)
+    return this.chatRepository.getConversation(conversationId)
   }
 
   // Use case to list all conversations
   async listConversations(limit?: number): Promise<Conversation[]> {
-    return this.repository.listConversations(limit)
+    return this.chatRepository.listConversations(limit)
   }
 
   // Use case to delete a conversation
   async deleteConversation(conversationId: string): Promise<void> {
-    return this.repository.deleteConversation(conversationId)
+    return this.chatRepository.deleteConversation(conversationId)
   }
 
   // Use case to add a message to a conversation
   async addMessage(conversationId: string, role: MessageRole, content: string): Promise<Message> {
-    return this.repository.addMessage(conversationId, { role, content })
+    return this.chatRepository.addMessage(conversationId, { role, content })
   }
 
   // Use case for performing RAG-based chat generation
@@ -38,33 +38,65 @@ export class ChatUseCases {
     conversationId: string,
     message: string
   ): Promise<{
-    retrievalResults: RetrievalResult[]
-    messageId: string
+    assistantMessage: Message
   }> {
-    // 1. Add the user message
-    await this.repository.addMessage(conversationId, {
-      role: 'user',
-      content: message,
-    })
+    const { messages, retrievalResults } = await this.addMessageAndRetrieveContext(
+      conversationId,
+      message
+    )
 
-    // 2. Retrieve context from vector store
-    const retrievalResults = await this.repository.vectorSearch(message)
-
-    // 3. Create assistant message placeholder (actual streaming happens at the API level)
-    const assistantMessage = await this.repository.addMessage(conversationId, {
+    // Call AI and generate the response
+    const assistantResponse = await this.aiRepository.generateCompletion(messages, retrievalResults)
+    const assistantMessage = await this.chatRepository.addMessage(conversationId, {
       role: 'assistant',
-      content: '', // Will be filled in by the streaming process
+      content: assistantResponse,
     })
 
     // Return the retrieval results and message ID for streaming
     return {
-      retrievalResults,
-      messageId: assistantMessage.id,
+      assistantMessage,
     }
+  }
+
+  // Use case for performing RAG-based chat streaming
+  async *streamChatResponse(conversationId: string, message: string): AsyncGenerator<string> {
+    const { messages, retrievalResults } = await this.addMessageAndRetrieveContext(
+      conversationId,
+      message
+    )
+
+    // Call AI and stream the response
+    const assistantResponseGenerator = this.aiRepository.streamCompletion(
+      messages,
+      retrievalResults
+    )
+
+    for await (const chunk of assistantResponseGenerator) {
+      yield chunk
+    }
+  }
+
+  async addMessageAndRetrieveContext(conversationId: string, message: string) {
+    // 1. Add the user message
+    await this.chatRepository.addMessage(conversationId, {
+      role: 'user',
+      content: message,
+    })
+
+    // 2. Get the conversation messages
+    const conversation = await this.chatRepository.getConversation(conversationId)
+    if (!conversation) {
+      throw new Error(`Conversation with ID ${conversationId} not found`)
+    }
+    const messages = conversation.messages
+
+    // 3. Retrieve context from vector store
+    const retrievalResults = await this.vectorRepository.vectorSearch(message)
+    return { messages, retrievalResults }
   }
 
   // Use case for adding documents to the vector store
   async addDocument(content: string, metadata?: Record<string, unknown>): Promise<string> {
-    return this.repository.addDocument(content, metadata)
+    return this.vectorRepository.addDocument(content, metadata)
   }
 }
