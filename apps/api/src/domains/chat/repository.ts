@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from 'uuid'
-import { 
-  ChatRepository, 
-  Conversation, 
-  Message, 
-  MessageRole, 
-  RetrievalResult, 
-  VectorSearchOptions 
+import {
+  ChatRepository,
+  Conversation,
+  Message,
+  MessageRole,
+  RetrievalResult,
+  VectorSearchOptions,
 } from '@workspace/domains'
 
 /**
@@ -14,7 +14,7 @@ import {
  */
 export class InMemoryChatRepository implements ChatRepository {
   private conversations: Map<string, Conversation> = new Map()
-  private documents: Map<string, { content: string, metadata?: Record<string, any> }> = new Map()
+  private documents: Map<string, { content: string; metadata?: Record<string, any> }> = new Map()
 
   // Conversation management
   async getConversation(id: string): Promise<Conversation | null> {
@@ -34,7 +34,7 @@ export class InMemoryChatRepository implements ChatRepository {
       title,
       messages: [],
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     }
 
     this.conversations.set(conversation.id, conversation)
@@ -50,7 +50,7 @@ export class InMemoryChatRepository implements ChatRepository {
     const updatedConversation = {
       ...conversation,
       ...updates,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
 
     this.conversations.set(id, updatedConversation)
@@ -63,7 +63,7 @@ export class InMemoryChatRepository implements ChatRepository {
 
   // Message management
   async addMessage(
-    conversationId: string, 
+    conversationId: string,
     message: Omit<Message, 'id' | 'createdAt'>
   ): Promise<Message> {
     const conversation = await this.getConversation(conversationId)
@@ -75,7 +75,7 @@ export class InMemoryChatRepository implements ChatRepository {
       id: uuidv4(),
       role: message.role,
       content: message.content,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     }
 
     conversation.messages.push(newMessage)
@@ -100,22 +100,22 @@ export class InMemoryChatRepository implements ChatRepository {
     // Default options
     const limit = options?.limit || 5
     const threshold = options?.threshold || 0.7
-    
+
     // This is a simplified mock implementation
     // In reality, you would:
     // 1. Convert the query to an embedding using an embedding model
     // 2. Perform vector similarity search using a vector database
     // 3. Return the most similar documents based on the cosine similarity
-    
+
     // For now, we'll do a simple keyword-based search
     const results: RetrievalResult[] = []
-    
+
     for (const [id, doc] of this.documents.entries()) {
       // Very naive relevance scoring - just check if query terms appear in the document
       // In a real implementation, you would use vector similarity
       const queryTerms = query.toLowerCase().split(/\s+/)
       const docContent = doc.content.toLowerCase()
-      
+
       // Count how many query terms appear in the document
       let matchCount = 0
       for (const term of queryTerms) {
@@ -123,21 +123,21 @@ export class InMemoryChatRepository implements ChatRepository {
           matchCount++
         }
       }
-      
+
       // Calculate a naive similarity score
       const score = queryTerms.length > 0 ? matchCount / queryTerms.length : 0
-      
+
       // Only include documents that meet the threshold
       if (score >= threshold) {
         results.push({
           id,
           content: doc.content,
           metadata: doc.metadata,
-          score
+          score,
         })
       }
     }
-    
+
     // Sort by score (descending) and limit results
     results.sort((a, b) => (b.score || 0) - (a.score || 0))
     return results.slice(0, limit)

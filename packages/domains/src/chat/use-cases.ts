@@ -56,22 +56,22 @@ export async function generateChatResponse(
   // 1. Add the user message
   await chatRepository.addMessage(conversationId, {
     role: 'user',
-    content: message
+    content: message,
   })
-  
+
   // 2. Retrieve context from vector store
   const retrievalResults = await chatRepository.vectorSearch(message)
-  
+
   // 3. Create assistant message placeholder (actual streaming happens at the API level)
   const assistantMessage = await chatRepository.addMessage(conversationId, {
     role: 'assistant',
-    content: '' // Will be filled in by the streaming process
+    content: '', // Will be filled in by the streaming process
   })
-  
+
   // Return the retrieval results and message ID for streaming
   return {
     retrievalResults,
-    messageId: assistantMessage.id
+    messageId: assistantMessage.id,
   }
 }
 

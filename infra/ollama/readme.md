@@ -1,7 +1,9 @@
 # Ollama
+
 We use Ollama to run LLMs locally. This allows us to run models without relying on cloud providers, and it supports a wide range of models.
 
 ## How to install
+
 1. Install [Ollama](https://ollama.com/download) on your machine.
 2. Download and run the model by running `ollama run deepseek-r1` in the terminal.
 3. Try it out directly in the terminal, eg. `Tell me about Mörtebo in Sweden`.

@@ -8,7 +8,7 @@ This file contains concise instructions tailored for GitHub Copilot to generate 
 - Package manager: `pnpm`
 - Domains live under `packages/domains/src` (core logic) and `apps/api/src/domains` (backend implementation)
 - Shared utility types and enums live in `packages/types/src`
-- Backend-specific implementations (e.g., repositories, routes) are in `apps/api/src/domains` 
+- Backend-specific implementations (e.g., repositories, routes) are in `apps/api/src/domains`
 
 ## Architectural Guidelines
 
@@ -22,11 +22,13 @@ The codebase follows Domain-Driven Design (DDD) principles and the Repository Pa
 ## Package and Import Conventions
 
 - **Inside packages** (e.g., `packages/domains`, `packages/types`, `packages/api`):
+
   - **Always use relative imports** (e.g., `./foo`, `../bar`) for files within the same package boundary.
   - **Never use aliases like `@/`, `@workspace/domains` or `@workspace/api`** for intra-package imports.
-  - **Only use `@workspace/domains` or `@workspace/api`** when importing *from* these packages into other packages or apps.
+  - **Only use `@workspace/domains` or `@workspace/api`** when importing _from_ these packages into other packages or apps.
 
 - **Inside apps** (e.g., `apps/api`, `apps/frontend`):
+
   - **Use the `@/` alias** (e.g., `@/domains/user/routes`) for internal imports within the same app.
   - **Use package imports** (e.g., `@workspace/domains` or `@workspace/api`) for importing from shared packages.
 
@@ -35,6 +37,7 @@ The codebase follows Domain-Driven Design (DDD) principles and the Repository Pa
 ### Examples
 
 #### Example: Relative imports inside a domain package
+
 ```ts
 // In packages/domains/src/user/index.ts
 import { UserSchema } from './schema'
@@ -42,6 +45,7 @@ import { validateUser } from '../utils/validateUser'
 ```
 
 #### Example: Importing from packages into an app
+
 ```ts
 // In apps/api/src/domains/user/create.ts
 import { UserSchema } from '@workspace/domains'
@@ -49,6 +53,7 @@ import { CreateUserRequestSchema } from '@workspace/api'
 ```
 
 #### Example: Using the @/ alias inside an app
+
 ```ts
 // In apps/frontend/src/components/UserProfile.tsx
 import { fetchUser } from '@/lib/api'

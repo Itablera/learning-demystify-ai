@@ -7,12 +7,11 @@ describe('HealthUseCases', () => {
   beforeEach(() => {
     repository = new MockHealthRepository()
   })
-  
 
   it('should perform a health check', async () => {
     const health = await repository.status()
     expect(health).toEqual({
       status: 'ok',
     })
-  })  
+  })
 })

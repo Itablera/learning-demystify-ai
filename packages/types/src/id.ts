@@ -6,10 +6,7 @@ import { z } from 'zod'
  * @returns A Zod schema for the ID type
  */
 const createIdSchema = <T extends string>(name: string) => {
-  return z
-    .string()
-    .uuid()
-    .brand<T>()
+  return z.string().uuid().brand<T>()
 }
 
 // Define all branded ID types

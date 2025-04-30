@@ -1,10 +1,10 @@
-import z from "zod";
+import z from 'zod'
 
 export const LogEntrySchema = z.object({
-    code: z.string().optional(),
-    message: z.string(),
-    details: z.record(z.string(), z.unknown()).optional(),
-    timestamp: z.date()
+  code: z.string().optional(),
+  message: z.string(),
+  details: z.record(z.string(), z.unknown()).optional(),
+  timestamp: z.date(),
 })
 export type LogEntry = z.infer<typeof LogEntrySchema>
 

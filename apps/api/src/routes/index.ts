@@ -4,18 +4,20 @@ import { chatRoutes } from '@/domains/chat/routes'
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Register API routes with prefix
-  fastify.register(async (app) => {
+  fastify.register(
+    async app => {
+      // Health domain routes
+      app.register(healthRoutes, { prefix: '/health' })
 
-    // Health domain routes
-    app.register(healthRoutes, { prefix: '/health' })
-    
-    // Chat domain routes
-    app.register(chatRoutes, { prefix: '/chat' })
-    
-    // Add other domain routes here as your application grows
-    // e.g., app.register(productRoutes, { prefix: '/products' })
-  }, { prefix: '/api' })
-  
+      // Chat domain routes
+      app.register(chatRoutes, { prefix: '/chat' })
+
+      // Add other domain routes here as your application grows
+      // e.g., app.register(productRoutes, { prefix: '/products' })
+    },
+    { prefix: '/api' }
+  )
+
   // Health check route
   fastify.get('/health', async () => {
     return { status: 'ok' }
