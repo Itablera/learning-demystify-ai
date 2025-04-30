@@ -1,12 +1,4 @@
-import {
-  addDocument,
-  addMessage,
-  createConversation,
-  deleteConversation,
-  generateChatResponse,
-  getConversation,
-  listConversations,
-} from '@workspace/domains'
+import { ChatUseCases } from '@workspace/domains'
 import { InMemoryChatRepository } from './repository'
 import { OllamaAIService } from './service'
 import { RoutesProvider } from '@/index'
@@ -27,6 +19,9 @@ import {
 
 // Create a single repository instance to be used across all routes
 const chatRepository = new InMemoryChatRepository()
+
+// Create an instance of the ChatUseCases with the repository
+const chatUseCases = new ChatUseCases(chatRepository)
 
 // Create an instance of the OllamaAIServiceAdapter
 // You can configure the model name and API URL based on your environment
@@ -49,7 +44,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async request => {
       const { title } = request.body
-      const conversation = await createConversation(chatRepository, title)
+      const conversation = await chatUseCases.createConversation(title)
 
       return {
         success: true,
@@ -69,7 +64,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       },
     },
     async () => {
-      const conversations = await listConversations(chatRepository)
+      const conversations = await chatUseCases.listConversations()
 
       return {
         success: true,
@@ -91,7 +86,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async request => {
       const { id } = request.params
-      const conversation = await getConversation(chatRepository, id)
+      const conversation = await chatUseCases.getConversation(id)
 
       if (!conversation) {
         throw new Error(`Conversation with ID ${id} not found`)
@@ -117,7 +112,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async request => {
       const { id } = request.params
-      await deleteConversation(chatRepository, id)
+      await chatUseCases.deleteConversation(id)
 
       return {
         success: true,
@@ -140,7 +135,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async request => {
       const { id } = request.params
-      const conversation = await getConversation(chatRepository, id)
+      const conversation = await chatUseCases.getConversation(id)
 
       if (!conversation) {
         throw new Error(`Conversation with ID ${id} not found`)
@@ -169,7 +164,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       const { id } = request.params
       const { content, role } = request.body
 
-      const message = await addMessage(chatRepository, id, role, content)
+      const message = await chatUseCases.addMessage(id, role, content)
 
       return {
         success: true,
@@ -199,11 +194,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       const wantsStream = acceptHeader.includes('text/event-stream')
 
       // Generate the chat response with RAG
-      const { retrievalResults, messageId } = await generateChatResponse(
-        chatRepository,
-        id,
-        message
-      )
+      const { retrievalResults, messageId } = await chatUseCases.generateChatResponse(id, message)
 
       // Get the conversation to access all messages for context
       const conversation = await chatRepository.getConversation(id)
@@ -329,7 +320,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async request => {
       const { content, metadata } = request.body
-      const id = await addDocument(chatRepository, content, metadata)
+      const id = await chatUseCases.addDocument(content, metadata)
 
       return {
         success: true,

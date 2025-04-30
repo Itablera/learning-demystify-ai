@@ -63,7 +63,7 @@ import { UserAvatar } from '@/components/UserAvatar'
 ## Naming Conventions
 
 - Schemas: `<Domain>Schema` (e.g., `UserSchema`)
-- Use-cases: functions named with verbs (e.g., `createUser`, `updateProduct`)
+- Use-cases: Class with methods named with verbs (e.g., `createUser`, `updateProduct`)
 - Repositories: `<Domain>Repository` (e.g., `UserRepository`)
 - Routes: domain-scoped files like `apps/api/src/domains/user/routes.ts`
 
