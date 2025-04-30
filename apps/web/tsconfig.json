@@ -10,14 +10,10 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "declarationMap": false,
+    "declaration": false
   },
-  "include": [
-    "next-env.d.ts",
-    "next.config.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
+  "include": ["next-env.d.ts", "next.config.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }

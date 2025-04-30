@@ -9,6 +9,7 @@
     "dev:deepseek": "turbo dev --filter=deepseek-r1-webgpu",
     "dev:janus": "turbo dev --filter=janus-pro-webgpu",
     "dev:api": "turbo dev --filter=api",
+    "dev:web": "turbo dev --filter=web",
     "test": "vitest",
     "lint": "turbo lint --filter='!./apps/deepseek-r1-webgpu' --filter='!./apps/janus-pro-webgpu'",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
