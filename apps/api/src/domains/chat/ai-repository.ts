@@ -1,153 +1,246 @@
 import { AIRepository, Message, RetrievalResult } from '@workspace/domains'
-import fetch from 'node-fetch'
+import { ChatOllama } from '@langchain/ollama'
+import { PromptTemplate } from '@langchain/core/prompts'
+import { StringOutputParser } from '@langchain/core/output_parsers'
+import { RunnableSequence } from '@langchain/core/runnables'
+import { env } from '@/env'
 
+/**
+ * Ollama AI repository adapter that uses LangChain to interact with Ollama
+ */
 export class OllamaAIRepository implements AIRepository {
-  private model: string
-  private baseUrl: string
+  private model: ChatOllama
+  private retrievalPromptTemplate: PromptTemplate<{ context: string; question: string }>
+  private standardPromptTemplate: PromptTemplate<{ question: string }>
 
-  constructor(model: string = 'llama3', baseUrl: string = 'http://localhost:11434') {
-    this.model = model
-    this.baseUrl = baseUrl
+  /**
+   * Create a new Ollama repository
+   * @param modelName The name of the Ollama model to use (e.g., 'llama3')
+   * @param baseUrl The base URL of the Ollama API
+   */
+  constructor(
+    modelName: string = env.OLLAMA_MODEL || 'llama3',
+    baseUrl: string = env.OLLAMA_API_URL || 'http://localhost:11434'
+  ) {
+    // Initialize the Ollama model with specified options
+    this.model = new ChatOllama({
+      model: modelName,
+      baseUrl: baseUrl,
+      temperature: 0.7,
+    })
+
+    // Create prompt template for RAG queries (with context)
+    this.retrievalPromptTemplate = PromptTemplate.fromTemplate(`
+      Answer the following question based on the provided context.
+      
+      Context:
+      {context}
+      
+      Question:
+      {question}
+      
+      Answer:
+    `)
+
+    // Create prompt template for standard queries (without context)
+    this.standardPromptTemplate = PromptTemplate.fromTemplate(`
+      Answer the following question:
+      
+      Question:
+      {question}
+      
+      Answer:
+    `)
   }
 
-  // Simple test method to say hi
-  async sayHi(): Promise<string> {
-    return 'Hi there! This is a simple response from the AI service.'
+  /**
+   * Convert Message[] from domain model to LangChain format
+   */
+  private convertMessagesToLangChainFormat(
+    messages: Message[]
+  ): { role: string; content: string }[] {
+    return messages.map(msg => ({
+      role: msg.role === 'user' ? 'human' : msg.role === 'assistant' ? 'ai' : 'system',
+      content: msg.content,
+    }))
   }
 
-  // Simple chat without context
+  /**
+   * Format retrieval results into a single context string
+   */
+  private formatRetrievalContext(retrievalResults: RetrievalResult[]): string {
+    return retrievalResults.map((result, index) => `[${index + 1}] ${result.content}`).join('\n\n')
+  }
+
+  /**
+   * Get the most recent user message
+   */
+  private getLatestUserMessage(messages: Message[]): string {
+    return messages.findLast(m => m.role === 'user')?.content || ''
+  }
+
+  /**
+   * Simple method to test the Ollama connection with a one-shot chat
+   * @param message The message to send to the model
+   * @returns A promise that resolves to the model's response
+   */
   async simpleChat(message: string): Promise<string> {
-    return this.generateCompletion([
-      { id: '1', role: 'user', content: message, createdAt: new Date().toISOString() },
-    ])
-  }
-
-  // Generate a completion based on messages and optional retrieval results
-  async generateCompletion(messages: Message[], context?: RetrievalResult[]): Promise<string> {
     try {
-      const prompt = this.buildPrompt(messages, context)
+      // Simple one-shot query to test Ollama connection
+      const chain = RunnableSequence.from([
+        this.standardPromptTemplate,
+        this.model,
+        new StringOutputParser(),
+      ])
 
-      const response = await fetch(`${this.baseUrl}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: this.model,
-          prompt,
-          stream: false,
-        }),
+      const response = await chain.invoke({
+        question: message,
       })
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Ollama API error: ${response.status} ${errorText}`)
-      }
-
-      const data = (await response.json()) as { response: string }
-      return data.response
+      return response
     } catch (error) {
-      console.error('Error generating completion:', error)
-      return `Error generating response: ${error instanceof Error ? error.message : 'Unknown error'}`
+      if (error instanceof Error) {
+        return `Error connecting to Ollama: ${error.message}`
+      }
+      return 'Unknown error connecting to Ollama'
     }
   }
 
-  // Stream a completion based on messages and optional retrieval results
+  /**
+   * Say hi
+   */
+  async sayHi(): Promise<string> {
+    try {
+      const response = await this.model.invoke('Hi!')
+      return response.text
+    } catch (error) {
+      if (error instanceof Error) {
+        return `Error connecting to Ollama: ${error.message}`
+      }
+      return 'Unknown error connecting to Ollama'
+    }
+  }
+
+  /**
+   * Generate a full completion response
+   */
+  async generateCompletion(messages: Message[], context?: RetrievalResult[]): Promise<string> {
+    const question = this.getLatestUserMessage(messages)
+    const chatHistory = this.convertMessagesToLangChainFormat(
+      messages.slice(0, -1) // Exclude the latest message as we'll use it explicitly
+    )
+
+    // Set up our generation chain
+    let chain: RunnableSequence
+
+    if (context && context.length > 0) {
+      // RAG approach with retrieval results as context
+      const contextString = this.formatRetrievalContext(context)
+
+      chain = RunnableSequence.from([
+        this.retrievalPromptTemplate,
+        this.model,
+        new StringOutputParser(),
+      ])
+
+      return chain.invoke({
+        context: contextString,
+        question,
+      })
+    } else {
+      // Standard approach without retrieval
+      chain = RunnableSequence.from([
+        this.standardPromptTemplate,
+        this.model,
+        new StringOutputParser(),
+      ])
+
+      return chain.invoke({
+        question,
+      })
+    }
+  }
+
+  /**
+   * Stream a completion response
+   */
   async *streamCompletion(
     messages: Message[],
     context?: RetrievalResult[]
   ): AsyncGenerator<string> {
-    try {
-      const prompt = this.buildPrompt(messages, context)
+    const question = this.getLatestUserMessage(messages)
+    const chatHistory = this.convertMessagesToLangChainFormat(
+      messages.slice(0, -1) // Exclude the latest message as we'll use it explicitly
+    )
 
-      const response = await fetch(`${this.baseUrl}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: this.model,
-          prompt,
-          stream: true,
-        }),
+    // Set up our streaming chain
+    let chain: RunnableSequence
+    let streamPromise: Promise<AsyncIterable<string>>
+
+    if (context && context.length > 0) {
+      // RAG approach with retrieval results as context
+      const contextString = this.formatRetrievalContext(context)
+
+      chain = RunnableSequence.from([
+        this.retrievalPromptTemplate,
+        this.model,
+        new StringOutputParser(),
+      ])
+
+      streamPromise = chain.stream({
+        context: contextString,
+        question,
       })
+    } else {
+      // Standard approach without retrieval
+      chain = RunnableSequence.from([
+        this.standardPromptTemplate,
+        this.model,
+        new StringOutputParser(),
+      ])
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Ollama API error: ${response.status} ${errorText}`)
-      }
+      streamPromise = chain.stream({
+        question,
+      })
+    }
 
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('Failed to get response reader')
-      }
+    // Process stream with timeout handling
+    try {
+      const stream = (await Promise.race([
+        streamPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Initial stream connection timeout')), 10000)
+        ),
+      ])) as AsyncIterable<string>
 
-      const decoder = new TextDecoder()
-      let buffer = ''
+      // Create a more efficient processing loop with buffer
+      const iterator = stream[Symbol.asyncIterator]()
+      let result: IteratorResult<string, void>
 
+      // Process chunks with individual timeouts
       while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        // Decode the chunk and add it to our buffer
-        buffer += decoder.decode(value, { stream: true })
-
-        // Process each complete line
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || '' // Keep the last incomplete line in the buffer
-
-        for (const line of lines) {
-          if (!line.trim()) continue
-
-          try {
-            const data = JSON.parse(line)
-            if (data.response) {
-              yield data.response
-            }
-          } catch (e) {
-            console.warn('Error parsing JSON from stream:', line)
-          }
-        }
-      }
-
-      // Process any remaining data in the buffer
-      if (buffer.trim()) {
         try {
-          const data = JSON.parse(buffer)
-          if (data.response) {
-            yield data.response
+          result = (await Promise.race([
+            iterator.next(),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error('Chunk processing timeout')), 5000)
+            ),
+          ])) as IteratorResult<string, void>
+
+          if (result.done) break
+          yield result.value
+        } catch (error) {
+          // If a timeout occurs, yield a special message and continue
+          if (error instanceof Error && error.message.includes('timeout')) {
+            console.warn('Stream chunk timed out, continuing with next chunk')
+            continue
           }
-        } catch (e) {
-          console.warn('Error parsing JSON from final buffer:', buffer)
+          throw error
         }
       }
     } catch (error) {
-      console.error('Error streaming completion:', error)
-      yield `Error generating response: ${error instanceof Error ? error.message : 'Unknown error'}`
+      console.error('Stream error:', error)
+      yield `Error in stream processing: ${error instanceof Error ? error.message : 'Unknown error'}`
     }
-  }
-
-  // Helper to build a prompt that includes context and conversation history
-  private buildPrompt(messages: Message[], context?: RetrievalResult[]): string {
-    let prompt = ''
-
-    // Add context if available
-    if (context && context.length > 0) {
-      prompt += 'Context information:\n\n'
-      context.forEach(item => {
-        prompt += `${item.content}\n\n`
-      })
-      prompt += '---\n\n'
-    }
-
-    // Add conversation history formatted in a way the LLM understands
-    messages.forEach(msg => {
-      const role = msg.role === 'user' ? 'USER' : 'ASSISTANT'
-      prompt += `${role}: ${msg.content}\n`
-    })
-
-    // If the last message wasn't from the assistant, add the assistant prompt
-    const lastMessage = messages[messages.length - 1]
-    if (lastMessage && lastMessage.role !== 'assistant') {
-      prompt += 'ASSISTANT: '
-    }
-
-    return prompt
   }
 }
