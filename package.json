@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter='!./apps/deepseek-r1-webgpu' --filter='!./apps/janus-pro-webgpu'",
     "dev:deepseek": "turbo dev --filter=deepseek-r1-webgpu",
     "dev:janus": "turbo dev --filter=janus-pro-webgpu",
     "dev:api": "turbo dev --filter=api",

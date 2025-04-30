@@ -89,7 +89,7 @@ importers:
         version: link:../../packages/api
       '@workspace/domains':
         specifier: workspace:*
-        version: link:../../packages/common
+        version: link:../../packages/domains
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
@@ -270,12 +270,12 @@ importers:
     devDependencies:
       '@workspace/domains':
         specifier: workspace:*
-        version: link:../common
+        version: link:../domains
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
 
-  packages/common:
+  packages/domains:
     dependencies:
       uuid:
         specifier: ^11.1.0
@@ -287,6 +287,9 @@ importers:
         specifier: ^3.24.2
         version: 3.24.2
     devDependencies:
+      '@workspace/types':
+        specifier: workspace:*
+        version: link:../types
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
@@ -329,6 +332,22 @@ importers:
       typescript-eslint:
         specifier: ^8.24.1
         version: 8.24.1(eslint@9.20.1(jiti@2.4.2))(typescript@5.7.3)
+
+  packages/types:
+    dependencies:
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
+      vitest:
+        specifier: ^3.1.1
+        version: 3.1.2(@types/node@20.17.19)(jiti@2.4.2)(lightningcss@1.29.2)(tsx@4.19.3)(yaml@2.7.1)
+      zod:
+        specifier: ^3.24.2
+        version: 3.24.2
+    devDependencies:
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
 
   packages/typescript-config: {}
 

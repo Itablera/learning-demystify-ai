@@ -1,0 +1,14 @@
+import type { Options } from 'prettier'
+
+const config: Options = {
+  singleQuote: true,
+  semi: false,
+  trailingComma: 'es5',
+  arrowParens: 'avoid',
+  bracketSpacing: true,
+  printWidth: 100,
+  tabWidth: 2,
+  endOfLine: 'lf',
+}
+
+export default config
