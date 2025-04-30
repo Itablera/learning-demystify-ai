@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import { MessageRoleEnum, MessageSchema, ConversationSchema, RetrievalResultSchema, VectorSearchOptionsSchema } from '@workspace/domains'
+import {
+  MessageRoleEnum,
+  MessageSchema,
+  ConversationSchema,
+  RetrievalResultSchema,
+} from '@workspace/domains'
 
 // Request schemas
 export const CreateConversationRequestSchema = z.object({
@@ -15,7 +20,6 @@ export type AddMessageRequest = z.infer<typeof AddMessageRequestSchema>
 
 export const ChatCompletionRequestSchema = z.object({
   message: z.string().min(1),
-  systemPrompt: z.string().optional(),
 })
 export type ChatCompletionRequest = z.infer<typeof ChatCompletionRequestSchema>
 

@@ -13,19 +13,21 @@ export const HealthResponseSchema = DataResponseSchema(HealthSchema)
 export type HealthResponse = z.infer<typeof HealthResponseSchema>
 
 /**
- * Health extended schema with detailed system information 
+ * Health extended schema with detailed system information
  */
 export const HealthDetailedSchema = HealthSchema.extend({
   version: z.string(),
   uptime: z.number().int().nonnegative(),
-  services: z.array(
-    z.object({
-      name: z.string(),
-      status: z.enum(['up', 'down', 'degraded']),
-      responseTime: z.number().nonnegative().optional(),
-      message: z.string().optional(),
-    })
-  ).optional(),
+  services: z
+    .array(
+      z.object({
+        name: z.string(),
+        status: z.enum(['up', 'down', 'degraded']),
+        responseTime: z.number().nonnegative().optional(),
+        message: z.string().optional(),
+      })
+    )
+    .optional(),
 })
 
 /**

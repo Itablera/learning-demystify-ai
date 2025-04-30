@@ -5,3 +5,4 @@
 - [Langchain](https://langchain.com) - A framework for building applications with LLMs.
 - [Turborepo](https://turbo.build/repo) - A high-performance build system for JavaScript and TypeScript monorepos.
 - [transformers.js-examples](https://github.com/huggingface/transformers.js-examples) - Examples of using Hugging Face's Transformers.js library for running LLMs in the browser.
+- [Suno - Lobby music](https://suno.com/s/3aFE1NmespHKKynT) - A tool for generating music using AI.

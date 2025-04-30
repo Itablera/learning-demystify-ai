@@ -33,10 +33,12 @@ export type DataResponse<T> = BaseResponse & {
  * Error response schema with optional error details
  */
 export const ErrorResponseSchema = BaseResponseSchema.extend({
-  error: z.object({
-    code: z.string(),
-    details: z.any().optional(),
-  }).optional(),
+  error: z
+    .object({
+      code: z.string(),
+      details: z.any().optional(),
+    })
+    .optional(),
 })
 
 /**

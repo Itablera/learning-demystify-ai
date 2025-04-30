@@ -13,5 +13,4 @@ export class HealthUseCases {
   async getHealth(): Promise<Health> {
     return this.repository.status()
   }
-
 }
