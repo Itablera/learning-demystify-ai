@@ -7,9 +7,9 @@
     "paths": {
       "@/*": ["./src/*"],
       "@workspace/domains": ["../../packages/domains/src/index.ts"],
-      "@workspace/api": ["../../packages/api/src/index.ts"],
+      "@workspace/api": ["../../packages/api/src/index.ts"]
     }
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "../../packages/api/src/chat/service.ts"],
   "exclude": ["node_modules"]
 }

@@ -8,7 +8,7 @@ import {
   listConversations,
 } from '@workspace/domains'
 import { InMemoryChatRepository } from './repository'
-import { OllamaAIServiceAdapter } from './service'
+import { OllamaAIService } from './service'
 import { RoutesProvider } from '@/index'
 import {
   CreateConversationRequestSchema,
@@ -30,7 +30,7 @@ const chatRepository = new InMemoryChatRepository()
 
 // Create an instance of the OllamaAIServiceAdapter
 // You can configure the model name and API URL based on your environment
-const aiService = new OllamaAIServiceAdapter(
+const aiService = new OllamaAIService(
   process.env.OLLAMA_MODEL || 'llama3',
   process.env.OLLAMA_API_URL || 'http://localhost:11434'
 )
