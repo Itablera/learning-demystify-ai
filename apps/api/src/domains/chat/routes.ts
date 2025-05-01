@@ -1,10 +1,7 @@
-import { ChatUseCases } from '@workspace/domains'
-import { InMemoryChatRepository } from './chat-repository'
-import { QdrantVectorRepository } from './vector-repository'
-import { OllamaAIRepository } from './ai-repository'
-import { LangChainEmbeddingService } from './embedding-service'
+import { Message, MessageRole } from '@workspace/domains'
 import { RoutesProvider } from '@/index'
 import { env } from '@/env'
+import { ChatServiceFactory } from './service-factory'
 import {
   CreateConversationRequestSchema,
   ConversationResponseSchema,
@@ -14,37 +11,18 @@ import {
   AddMessageRequestSchema,
   MessageResponseSchema,
   ChatCompletionRequestSchema,
-  ChatCompletionResponseSchema,
   AddDocumentRequestSchema,
   AddDocumentResponseSchema,
   BaseResponseSchema,
 } from '@workspace/api'
 
-// Create embedding service with LangChain
-const embeddingService = new LangChainEmbeddingService(
-  env.EMBEDDING_MODEL,
-  env.OLLAMA_API_URL,
-  env.EMBEDDING_DIMENSION
-)
-
-// Create repository and service instances to be used across all routes
-const chatRepository = new InMemoryChatRepository()
-const vectorRepository = new QdrantVectorRepository(env.QDRANT_URL, 'documents', embeddingService)
-const aiRepository = new OllamaAIRepository(env.OLLAMA_MODEL, env.OLLAMA_API_URL)
-
-// Create an instance of the ChatUseCases with all dependencies
-const chatUseCases = new ChatUseCases(chatRepository, vectorRepository, aiRepository)
-
 export async function chatRoutes(routes: RoutesProvider): Promise<void> {
-  // Initialize the Qdrant collection
-  try {
-    await vectorRepository.initialize()
-    console.log('Qdrant vector repository initialized successfully')
-  } catch (error) {
-    console.error('Failed to initialize Qdrant vector repository:', error)
-    console.warn('Using in-memory vector repository as fallback would happen here in production')
-    // In a production app, you might want to fall back to InMemoryVectorRepository here
-  }
+  // Initialize services using the factory
+  const { chatUseCases, chatRepository, vectorRepository, aiRepository } =
+    ChatServiceFactory.createServices()
+
+  // Initialize the vector repository
+  await ChatServiceFactory.initializeVectorRepository(vectorRepository)
 
   // Create a new conversation
   routes.post(
@@ -196,7 +174,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
         params: IdParamsSchema,
         body: ChatCompletionRequestSchema,
         response: {
-          200: ChatCompletionResponseSchema,
+          200: MessageResponseSchema,
         },
       },
     },
@@ -309,11 +287,13 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
 
       // Return the message ID and retrieval results
       return {
-        success: true,
         data: {
-          messageId: resultMessageId,
-          retrievalResults,
+          id: resultMessageId,
+          content: aiResponse,
+          role: 'assistant' as MessageRole,
+          createdAt: new Date().toISOString(),
         },
+        success: true,
       }
     }
   )
@@ -353,7 +333,14 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async request => {
       const { content } = request.body
-      const generation = await aiRepository.simpleChat(content)
+      const message: Message = {
+        role: 'user',
+        content,
+        id: '1',
+        createdAt: new Date().toISOString(),
+      }
+      const messages: Message[] = [message]
+      const generation = await aiRepository.generateCompletion(messages)
 
       return {
         success: true,
@@ -374,7 +361,15 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       },
     },
     async () => {
-      const generation = await aiRepository.sayHi()
+      const messages: Message[] = [
+        {
+          role: 'user',
+          content: 'Hi',
+          id: '1',
+          createdAt: new Date().toISOString(),
+        },
+      ]
+      const generation = await aiRepository.generateCompletion(messages)
 
       return {
         success: true,

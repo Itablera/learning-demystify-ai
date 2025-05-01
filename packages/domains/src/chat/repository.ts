@@ -28,3 +28,18 @@ export interface AIRepository {
   // Stream a completion based on messages and optional retrieval results
   streamCompletion(messages: Message[], context?: RetrievalResult[]): AsyncGenerator<string>
 }
+
+/**
+ * Service for generating embeddings from text
+ */
+export interface EmbeddingService {
+  /**
+   * Convert text to a vector embedding
+   */
+  getEmbedding(text: string): Promise<number[]>
+
+  /**
+   * Convert multiple texts to vector embeddings (optional batch processing)
+   */
+  embedBatch?(texts: string[]): Promise<number[][]>
+}

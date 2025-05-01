@@ -1,12 +1,13 @@
-import { VectorRepository, RetrievalResult, VectorSearchOptions } from '@workspace/domains'
+import {
+  VectorRepository,
+  RetrievalResult,
+  VectorSearchOptions,
+  EmbeddingService,
+} from '@workspace/domains'
 import { QdrantClient } from '@qdrant/js-client-rest'
 import { randomUUID } from 'crypto'
 import { env } from '@/env'
-import {
-  EmbeddingService,
-  LangChainEmbeddingService,
-  MockEmbeddingService,
-} from './embedding-service'
+import { LangChainEmbeddingService, MockEmbeddingService } from './embedding-service'
 import { QdrantVectorStore } from '@langchain/qdrant'
 import { Document } from '@langchain/core/documents'
 

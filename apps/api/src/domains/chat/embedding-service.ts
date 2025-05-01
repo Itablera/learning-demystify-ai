@@ -1,10 +1,6 @@
 import { env } from '@/env'
 import { OllamaEmbeddings } from '@langchain/ollama'
-
-export interface EmbeddingService {
-  getEmbedding(text: string): Promise<number[]>
-  embedBatch?(texts: string[]): Promise<number[][]>
-}
+import { EmbeddingService } from '@workspace/domains'
 
 /**
  * Embedding service using LangChain's OllamaEmbeddings class
