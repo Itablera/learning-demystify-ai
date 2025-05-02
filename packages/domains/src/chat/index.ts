@@ -6,6 +6,3 @@ export * from './repository'
 
 // Export service interfaces
 export * from './services'
-
-// Export use cases
-export * from './use-cases'

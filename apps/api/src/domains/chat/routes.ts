@@ -1,4 +1,5 @@
 import { Message, MessageRole } from '@workspace/domains'
+import { chatUseCases } from '@workspace/use-cases'
 import { RoutesProvider } from '@/index'
 import { env } from '@/env'
 import { ChatServiceFactory } from './service-factory'
@@ -18,8 +19,7 @@ import {
 
 export async function chatRoutes(routes: RoutesProvider): Promise<void> {
   // Initialize services using the factory
-  const { chatUseCases, chatRepository, vectorService, aiService } =
-    ChatServiceFactory.createServices()
+  const { chatRepository, vectorService, aiService } = ChatServiceFactory.createServices()
 
   // Initialize the vector service
   await ChatServiceFactory.initializeVectorService(vectorService)
@@ -37,7 +37,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async request => {
       const { title } = request.body
-      const conversation = await chatUseCases.createConversation(title)
+      const conversation = await chatUseCases.createConversation(chatRepository, title)
 
       return {
         success: true,
@@ -57,7 +57,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       },
     },
     async () => {
-      const conversations = await chatUseCases.listConversations()
+      const conversations = await chatUseCases.listConversations(chatRepository)
 
       return {
         success: true,
@@ -79,7 +79,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async request => {
       const { id } = request.params
-      const conversation = await chatUseCases.getConversation(id)
+      const conversation = await chatUseCases.getConversation(chatRepository, id)
 
       if (!conversation) {
         throw new Error(`Conversation with ID ${id} not found`)
@@ -105,7 +105,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async request => {
       const { id } = request.params
-      await chatUseCases.deleteConversation(id)
+      await chatUseCases.deleteConversation(chatRepository, id)
 
       return {
         success: true,
@@ -128,7 +128,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async request => {
       const { id } = request.params
-      const conversation = await chatUseCases.getConversation(id)
+      const conversation = await chatUseCases.getConversation(chatRepository, id)
 
       if (!conversation) {
         throw new Error(`Conversation with ID ${id} not found`)
@@ -157,7 +157,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       const { id } = request.params
       const { content, role } = request.body
 
-      const message = await chatUseCases.addMessage(id, role, content)
+      const message = await chatUseCases.addMessage(chatRepository, id, role, content)
 
       return {
         success: true,
@@ -186,11 +186,16 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       const acceptHeader = request.headers.accept || ''
       const wantsStream = acceptHeader.includes('text/event-stream')
 
-      const { retrievalResults, messages } = await chatUseCases.addMessageAndRetrieveContext(
+      const { messages, retrievalResults } = await chatUseCases.addMessageAndRetrieveContext(
+        chatRepository,
+        vectorService,
         id,
         message
       )
-      const { id: resultMessageId } = await chatUseCases.addMessage(id, 'assistant', '')
+
+      // Add an empty assistant message as a placeholder
+      const assistantMessage = await chatUseCases.addMessage(chatRepository, id, 'assistant', '')
+      const resultMessageId = assistantMessage.id
 
       // If streaming is requested, set up SSE response
       if (wantsStream) {
@@ -311,7 +316,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     },
     async request => {
       const { content, metadata } = request.body
-      const id = await chatUseCases.addDocument(content, metadata)
+      const id = await chatUseCases.addDocument(vectorService, content, metadata)
 
       return {
         success: true,

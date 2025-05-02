@@ -40,6 +40,7 @@
     "@types/uuid": "^10.0.0",
     "@workspace/api": "workspace:*",
     "@workspace/domains": "workspace:*",
+    "@workspace/use-cases": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "tsx": "^4.7.0",
     "typescript": "^5.7.3"

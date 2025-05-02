@@ -1,5 +1,5 @@
 import { env } from '@/env'
-import { ChatRepository, VectorService, AIService, ChatUseCases } from '@workspace/domains'
+import { ChatRepository, VectorService, AIService } from '@workspace/domains'
 import { InMemoryChatRepository } from './chat-repository'
 import { QdrantVectorService, InMemoryVectorService } from './vector-service'
 import { OllamaAIService } from './ai-service'
@@ -13,7 +13,6 @@ export class ChatServiceFactory {
    * Create all services required for the chat domain
    */
   static createServices(): {
-    chatUseCases: ChatUseCases
     chatRepository: ChatRepository
     vectorService: VectorService
     aiService: AIService
@@ -30,11 +29,7 @@ export class ChatServiceFactory {
     const vectorService = new QdrantVectorService(env.QDRANT_URL, 'documents', embeddingService)
     const aiService = new OllamaAIService(env.OLLAMA_MODEL, env.OLLAMA_API_URL)
 
-    // Create use-cases with repository and services
-    const chatUseCases = new ChatUseCases(chatRepository, vectorService, aiService)
-
     return {
-      chatUseCases,
       chatRepository,
       vectorService,
       aiService,
