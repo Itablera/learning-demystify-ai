@@ -1,11 +1,12 @@
-import { ChatRepository, VectorRepository, AIRepository } from './repository'
+import { ChatRepository } from './repository'
+import { AIService, VectorService } from './services'
 import { Conversation, Message, MessageRole, RetrievalResult } from './schema'
 
 export class ChatUseCases {
   constructor(
     private chatRepository: ChatRepository,
-    private vectorRepository: VectorRepository,
-    private aiRepository: AIRepository
+    private vectorService: VectorService,
+    private aiService: AIService
   ) {}
 
   // Use case to create a new conversation
@@ -46,13 +47,13 @@ export class ChatUseCases {
     )
 
     // Call AI and generate the response
-    const assistantResponse = await this.aiRepository.generateCompletion(messages, retrievalResults)
+    const assistantResponse = await this.aiService.generateCompletion(messages, retrievalResults)
     const assistantMessage = await this.chatRepository.addMessage(conversationId, {
       role: 'assistant',
       content: assistantResponse,
     })
 
-    // Return the retrieval results and message ID for streaming
+    // Return the assistant message
     return {
       assistantMessage,
     }
@@ -66,16 +67,14 @@ export class ChatUseCases {
     )
 
     // Call AI and stream the response
-    const assistantResponseGenerator = this.aiRepository.streamCompletion(
-      messages,
-      retrievalResults
-    )
+    const assistantResponseGenerator = this.aiService.streamCompletion(messages, retrievalResults)
 
     for await (const chunk of assistantResponseGenerator) {
       yield chunk
     }
   }
 
+  // Helper method to add user message and retrieve context
   async addMessageAndRetrieveContext(conversationId: string, message: string) {
     // 1. Add the user message
     await this.chatRepository.addMessage(conversationId, {
@@ -91,12 +90,12 @@ export class ChatUseCases {
     const messages = conversation.messages
 
     // 3. Retrieve context from vector store
-    const retrievalResults = await this.vectorRepository.vectorSearch(message)
+    const retrievalResults = await this.vectorService.vectorSearch(message)
     return { messages, retrievalResults }
   }
 
   // Use case for adding documents to the vector store
   async addDocument(content: string, metadata?: Record<string, unknown>): Promise<string> {
-    return this.vectorRepository.addDocument(content, metadata)
+    return this.vectorService.addDocument(content, metadata)
   }
 }

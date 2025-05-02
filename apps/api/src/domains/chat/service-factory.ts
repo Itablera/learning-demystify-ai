@@ -1,8 +1,8 @@
 import { env } from '@/env'
-import { ChatRepository, VectorRepository, AIRepository, ChatUseCases } from '@workspace/domains'
+import { ChatRepository, VectorService, AIService, ChatUseCases } from '@workspace/domains'
 import { InMemoryChatRepository } from './chat-repository'
-import { QdrantVectorRepository, InMemoryVectorRepository } from './vector-repository'
-import { OllamaAIRepository } from './ai-repository'
+import { QdrantVectorService, InMemoryVectorService } from './vector-service'
+import { OllamaAIService } from './ai-service'
 import { LangChainEmbeddingService } from './embedding-service'
 
 /**
@@ -15,8 +15,8 @@ export class ChatServiceFactory {
   static createServices(): {
     chatUseCases: ChatUseCases
     chatRepository: ChatRepository
-    vectorRepository: VectorRepository
-    aiRepository: AIRepository
+    vectorService: VectorService
+    aiService: AIService
   } {
     // Create embedding service with LangChain
     const embeddingService = new LangChainEmbeddingService(
@@ -25,41 +25,35 @@ export class ChatServiceFactory {
       env.EMBEDDING_DIMENSION
     )
 
-    // Create repository instances
+    // Create repository and service instances
     const chatRepository = new InMemoryChatRepository()
-    const vectorRepository = new QdrantVectorRepository(
-      env.QDRANT_URL,
-      'documents',
-      embeddingService
-    )
-    const aiRepository = new OllamaAIRepository(env.OLLAMA_MODEL, env.OLLAMA_API_URL)
+    const vectorService = new QdrantVectorService(env.QDRANT_URL, 'documents', embeddingService)
+    const aiService = new OllamaAIService(env.OLLAMA_MODEL, env.OLLAMA_API_URL)
 
-    // Create use-cases with repositories
-    const chatUseCases = new ChatUseCases(chatRepository, vectorRepository, aiRepository)
+    // Create use-cases with repository and services
+    const chatUseCases = new ChatUseCases(chatRepository, vectorService, aiService)
 
     return {
       chatUseCases,
       chatRepository,
-      vectorRepository,
-      aiRepository,
+      vectorService,
+      aiService,
     }
   }
 
   /**
-   * Initialize the vector repository
+   * Initialize the vector service
    */
-  static async initializeVectorRepository(
-    vectorRepository: VectorRepository
-  ): Promise<VectorRepository> {
+  static async initializeVectorService(vectorService: VectorService): Promise<VectorService> {
     try {
-      if (vectorRepository instanceof QdrantVectorRepository) {
-        await vectorRepository.initialize()
-        console.log('Qdrant vector repository initialized successfully')
-        return vectorRepository
+      if (vectorService instanceof QdrantVectorService) {
+        await vectorService.initialize()
+        console.log('Qdrant vector service initialized successfully')
+        return vectorService
       }
     } catch (error) {
-      console.error('Failed to initialize Qdrant vector repository:', error)
-      console.warn('Falling back to in-memory vector repository')
+      console.error('Failed to initialize Qdrant vector service:', error)
+      console.warn('Falling back to in-memory vector service')
 
       // Create embedding service with LangChain
       const embeddingService = new LangChainEmbeddingService(
@@ -68,10 +62,10 @@ export class ChatServiceFactory {
         env.EMBEDDING_DIMENSION
       )
 
-      // Create fallback in-memory repository
-      return new InMemoryVectorRepository(embeddingService)
+      // Create fallback in-memory service
+      return new InMemoryVectorService(embeddingService)
     }
 
-    return vectorRepository
+    return vectorService
   }
 }

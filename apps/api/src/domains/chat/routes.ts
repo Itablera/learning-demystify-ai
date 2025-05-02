@@ -18,11 +18,11 @@ import {
 
 export async function chatRoutes(routes: RoutesProvider): Promise<void> {
   // Initialize services using the factory
-  const { chatUseCases, chatRepository, vectorRepository, aiRepository } =
+  const { chatUseCases, chatRepository, vectorService, aiService } =
     ChatServiceFactory.createServices()
 
-  // Initialize the vector repository
-  await ChatServiceFactory.initializeVectorRepository(vectorRepository)
+  // Initialize the vector service
+  await ChatServiceFactory.initializeVectorService(vectorService)
 
   // Create a new conversation
   routes.post(
@@ -201,7 +201,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
         })
 
         // Start streaming the AI response
-        const streamGenerator = aiRepository.streamCompletion(messages, retrievalResults)
+        const streamGenerator = aiService.streamCompletion(messages, retrievalResults)
 
         let fullResponse = ''
         let lastUpdateTime = Date.now()
@@ -278,7 +278,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       }
 
       // For non-streaming responses, generate the full response
-      const aiResponse = await aiRepository.generateCompletion(messages, retrievalResults)
+      const aiResponse = await aiService.generateCompletion(messages, retrievalResults)
 
       // Update the assistant message with the full response
       await chatRepository.updateConversation(id, {
@@ -340,7 +340,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
         createdAt: new Date().toISOString(),
       }
       const messages: Message[] = [message]
-      const generation = await aiRepository.generateCompletion(messages)
+      const generation = await aiService.generateCompletion(messages)
 
       return {
         success: true,
@@ -369,7 +369,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
           createdAt: new Date().toISOString(),
         },
       ]
-      const generation = await aiRepository.generateCompletion(messages)
+      const generation = await aiService.generateCompletion(messages)
 
       return {
         success: true,
