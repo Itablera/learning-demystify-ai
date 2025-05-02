@@ -16,14 +16,25 @@ export async function addMessageAndRetrieveContext(
   // 1. Add the user message
   await addMessage(chatRepository, conversationId, 'user', message)
 
-  // 2. Get the conversation messages
+  // 2. Retrieve context from vector store
+  const retrievalResults = await vectorStore.vectorSearch(message)
+
+  // 3. Add the context to the conversation as a verbose message
+  if (retrievalResults.length > 0) {
+    await addMessage(
+      chatRepository,
+      conversationId,
+      'system',
+      retrievalResults.map(result => result.content).join('\n')
+    )
+  }
+
+  // 4. Get the conversation messages
   const conversation = await getConversation(chatRepository, conversationId)
   if (!conversation) {
     throw new Error(`Conversation with ID ${conversationId} not found`)
   }
 
-  // 3. Retrieve context from vector store
-  const retrievalResults = await vectorStore.vectorSearch(message)
   return { messages: conversation.messages, retrievalResults }
 }
 

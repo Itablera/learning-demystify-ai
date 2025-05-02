@@ -178,7 +178,7 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
         params: IdParamsSchema,
         body: ChatCompletionRequestSchema,
         response: {
-          200: MessageResponseSchema,
+          200: MessagesListResponseSchema,
         },
       },
     },
@@ -290,18 +290,13 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
       const aiResponse = await aiService.generateCompletion(messages, retrievalResults)
 
       // Update the assistant message with the full response
-      await chatRepository.updateConversation(id, {
+      const updatedConversation = await chatRepository.updateConversation(id, {
         messages: messages.map(m => (m.id === resultMessageId ? { ...m, content: aiResponse } : m)),
       })
 
       // Return the message ID and retrieval results
       return {
-        data: {
-          id: resultMessageId,
-          content: aiResponse,
-          role: 'assistant' as MessageRole,
-          createdAt: new Date().toISOString(),
-        },
+        data: updatedConversation.messages,
         success: true,
       }
     }

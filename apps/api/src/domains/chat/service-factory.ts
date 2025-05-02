@@ -3,7 +3,7 @@ import { ChatRepository } from '@workspace/domains'
 import { AI, VectorStore } from '@workspace/integrations'
 import { InMemoryChatRepository } from './chat-repository'
 import { QdrantVectorStore, InMemoryVectorService } from '../../integrations/vector-store'
-import { OllamaAIService } from '../../integrations/ai'
+import { OllamaAI } from '../../integrations/ai'
 import { LangChainEmbeddings } from '../../integrations/embeddings'
 
 /**
@@ -28,7 +28,7 @@ export class ChatServiceFactory {
     // Create repository and service instances
     const chatRepository = new InMemoryChatRepository()
     const vectorStore = new QdrantVectorStore(env.QDRANT_URL, 'documents', embeddingService)
-    const ai = new OllamaAIService(env.OLLAMA_MODEL, env.OLLAMA_API_URL)
+    const ai = new OllamaAI(env.OLLAMA_MODEL, env.OLLAMA_API_URL)
 
     return {
       chatRepository,

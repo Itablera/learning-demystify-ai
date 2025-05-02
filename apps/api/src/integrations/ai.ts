@@ -1,14 +1,15 @@
-import { AIService, Message, RetrievalResult } from '@workspace/domains'
+import { Message, RetrievalResult } from '@workspace/domains'
 import { ChatOllama } from '@langchain/ollama'
 import { PromptTemplate } from '@langchain/core/prompts'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { RunnableSequence } from '@langchain/core/runnables'
 import { env } from '@/env'
+import { AI } from '@workspace/integrations'
 
 /**
  * Ollama AI service that uses LangChain to interact with Ollama
  */
-export class OllamaAIService implements AIService {
+export class OllamaAI implements AI {
   private model: ChatOllama
   private retrievalPromptTemplate: PromptTemplate<{ context: string; question: string }>
   private standardPromptTemplate: PromptTemplate<{ question: string }>
@@ -137,16 +138,14 @@ export class OllamaAIService implements AIService {
       // RAG approach with retrieval results as context
       const contextString = this.formatRetrievalContext(context)
 
-      chain = RunnableSequence.from([
-        this.retrievalPromptTemplate,
-        this.model,
-        new StringOutputParser(),
-      ])
-
-      return chain.invoke({
+      const populatedPrompt = await this.retrievalPromptTemplate.format({
         context: contextString,
         question,
       })
+
+      chain = RunnableSequence.from([this.model, new StringOutputParser()])
+
+      return chain.invoke(populatedPrompt)
     } else {
       // Standard approach without retrieval
       chain = RunnableSequence.from([
