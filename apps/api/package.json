@@ -17,6 +17,7 @@
   "dependencies": {
     "@fastify/autoload": "^6.3.0",
     "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.0.1",
     "@fastify/jwt": "^9.1.0",
     "@fastify/sensible": "^6.0.3",
     "@fastify/swagger": "^9.4.2",
@@ -41,8 +42,8 @@
     "@workspace/api": "workspace:*",
     "@workspace/domains": "workspace:*",
     "@workspace/integrations": "workspace:*",
-    "@workspace/use-cases": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
+    "@workspace/use-cases": "workspace:*",
     "tsx": "^4.7.0",
     "typescript": "^5.7.3"
   }

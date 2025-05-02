@@ -2,6 +2,15 @@ import type { Conversation, Message } from '@/types/chat'
 
 const API_BASE_URL = 'http://localhost:3000/api/chat'
 
+// Default fetch options with CORS credentials
+const defaultFetchOptions: RequestInit = {
+  credentials: 'include', // Include cookies for cross-origin requests
+  headers: {
+    'Content-Type': 'application/json',
+    accept: 'application/json',
+  },
+}
+
 // Error handling helper
 async function handleResponse(response: Response) {
   if (!response.ok) {
@@ -13,24 +22,21 @@ async function handleResponse(response: Response) {
 
 // Conversation Management
 export async function getConversations(): Promise<Conversation[]> {
-  const response = await fetch(`${API_BASE_URL}/conversations`)
+  const response = await fetch(`${API_BASE_URL}/conversations`, defaultFetchOptions)
   const data = await handleResponse(response)
   return data.data
 }
 
 export async function getConversation(id: string): Promise<Conversation> {
-  const response = await fetch(`${API_BASE_URL}/conversations/${id}`)
+  const response = await fetch(`${API_BASE_URL}/conversations/${id}`, defaultFetchOptions)
   const data = await handleResponse(response)
   return data.data
 }
 
 export async function createConversation(title: string): Promise<Conversation> {
   const response = await fetch(`${API_BASE_URL}/conversations`, {
+    ...defaultFetchOptions,
     method: 'POST',
-    headers: {
-      accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ title }),
   })
   const data = await handleResponse(response)
@@ -39,6 +45,7 @@ export async function createConversation(title: string): Promise<Conversation> {
 
 export async function deleteConversation(id: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/conversations/${id}`, {
+    ...defaultFetchOptions,
     method: 'DELETE',
   })
   await handleResponse(response)
@@ -46,7 +53,10 @@ export async function deleteConversation(id: string): Promise<void> {
 
 // Message Management
 export async function getConversationMessages(conversationId: string): Promise<Message[]> {
-  const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`)
+  const response = await fetch(
+    `${API_BASE_URL}/conversations/${conversationId}/messages`,
+    defaultFetchOptions
+  )
   const data = await handleResponse(response)
   return data.data
 }
@@ -57,10 +67,8 @@ export async function sendMessage(
   role: 'user' | 'assistant' | 'system' = 'user'
 ): Promise<Message> {
   const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`, {
+    ...defaultFetchOptions,
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ content, role }),
   })
   const data = await handleResponse(response)
@@ -75,9 +83,10 @@ export async function streamCompletion(
   signal?: AbortSignal
 ): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}/completions`, {
+    ...defaultFetchOptions,
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      ...defaultFetchOptions.headers,
       Accept: 'text/event-stream',
     },
     body: JSON.stringify({ message }),
@@ -126,10 +135,8 @@ export async function addDocument(
   metadata?: Record<string, any>
 ): Promise<string> {
   const response = await fetch(`${API_BASE_URL}/documents`, {
+    ...defaultFetchOptions,
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ content, metadata }),
   })
   const data = await handleResponse(response)
@@ -139,10 +146,8 @@ export async function addDocument(
 // Simple Chat (for testing)
 export async function simpleChat(content: string): Promise<Message> {
   const response = await fetch(`${API_BASE_URL}/simple-chat`, {
+    ...defaultFetchOptions,
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ content }),
   })
   const data = await handleResponse(response)
