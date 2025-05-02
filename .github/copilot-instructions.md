@@ -45,6 +45,33 @@ This file provides concise, AI-optimized instructions to guide GitHub Copilot Ag
 - In apps, use @/ for app-local imports (e.g. @/domains/user/routes).
 - Never use relative paths across package boundaries.
 
+### Examples
+
+#### Example: Relative imports inside a domain package
+
+```ts
+// In packages/domains/src/user/index.ts
+import { UserSchema } from './schema'
+import { validateUser } from '../utils/validateUser'
+```
+
+#### Example: Importing from packages into an app
+
+```ts
+// In apps/api/src/domains/user/create.ts
+import { UserSchema } from '@workspace/domains'
+import { CreateUserRequestSchema } from '@workspace/api'
+import { CreateUserUseCase } from '@workspace/use-cases'
+```
+
+#### Example: Using the @/ alias inside an app
+
+```ts
+// In apps/frontend/src/components/UserProfile.tsx
+import { fetchUser } from '@/lib/api'
+import { UserAvatar } from '@/components/UserAvatar'
+```
+
 ## Naming Conventions
 
 - Schemas: UserSchema, InvoiceSchema
