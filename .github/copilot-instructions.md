@@ -5,7 +5,6 @@ This file provides concise, AI-optimized instructions to guide GitHub Copilot Ag
 ## Project Overview
 
 - **Monorepo** managed with **Turborepo** and **pnpm**.
-- **App name**: Digital Office
 - **Package scope**: `@workspace/*`
 
 ### Core Package Roles
@@ -32,10 +31,12 @@ This file provides concise, AI-optimized instructions to guide GitHub Copilot Ag
 /packages
   /domains/src/[domain]/{schema.ts, repository.ts}
   /use-cases/[useCase].ts
-  /integrations/[provider]/[client].ts
+  /integrations/[client].ts
   /api/src/[domain]/schema.ts
 
-/apps/api/src/domains/[domain]/{routes.ts, repository.ts, use-cases.ts}
+/apps/api/src
+  /domains/[domain]/{routes.ts, repository.ts}
+  /integrations/[client].ts
 ```
 
 ## Import Rules
@@ -78,7 +79,7 @@ import { UserAvatar } from '@/components/UserAvatar'
 - DTOs: CreateUserRequest, UserResponse
 - Repositories: UserRepository (interface), MongoUserRepository (impl)
 - Use-cases: assignLicenseToUser()
-- Integrations: OpenAIClient, QdrantVectorStore
+- Integrations: OpenAIClient, QdrantVectorStoreClient
 
 ## Function and Class Usage
 
