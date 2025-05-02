@@ -14,10 +14,6 @@ This file contains concise instructions tailored for GitHub Copilot to generate 
 - Shared utility types and enums live in `packages/types/src`
 - Backend-specific implementations (e.g., repositories, routes) are in `apps/api/src/domains`
 
-## Architectural Guidelines
-
-The codebase follows Domain-Driven Design (DDD) principles and the Repository Pattern. Each domain encapsulates its own schema, use-cases, and repository interface. Repository implementations are kept separate from domain logic, under `apps/api/src/domains/[domain]/repository.ts`. Repositories should not contain business logic—only persistence-related behavior. Use-cases coordinate business operations and may call repositories, workflows, or integrations.
-
 ## Schema vs DTO Distinction
 
 - Core domain schemas and types are defined in `@workspace/domains`
