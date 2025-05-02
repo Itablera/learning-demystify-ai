@@ -1,30 +1,26 @@
-import {
-  VectorService,
-  RetrievalResult,
-  VectorSearchOptions,
-  EmbeddingService,
-} from '@workspace/domains'
+import { RetrievalResult, VectorSearchOptions } from '@workspace/domains'
+import { Embeddings, VectorStore } from '@workspace/integrations'
 import { QdrantClient } from '@qdrant/js-client-rest'
 import { randomUUID } from 'crypto'
 import { env } from '@/env'
-import { LangChainEmbeddingService, MockEmbeddingService } from './embedding-service'
-import { QdrantVectorStore } from '@langchain/qdrant'
+import { LangChainEmbeddings, MockEmbeddings } from './embeddings'
+import { QdrantVectorStore as QdrantVectorStoreType } from '@langchain/qdrant'
 import { Document } from '@langchain/core/documents'
 
-export class QdrantVectorService implements VectorService {
+export class QdrantVectorStore implements VectorStore {
   private client: QdrantClient
   private collectionName: string
-  private embeddingService: EmbeddingService
-  private vectorStore: QdrantVectorStore | null = null
+  private embeddings: Embeddings
+  private vectorStore: QdrantVectorStoreType | null = null
 
   constructor(
     connectionString: string = env.QDRANT_URL,
     collectionName: string = 'documents',
-    embeddingService?: EmbeddingService
+    embeddingService?: Embeddings
   ) {
     this.client = new QdrantClient({ url: connectionString })
     this.collectionName = collectionName
-    this.embeddingService = embeddingService || new LangChainEmbeddingService()
+    this.embeddings = embeddingService || new LangChainEmbeddings()
   }
 
   /**
@@ -53,10 +49,10 @@ export class QdrantVectorService implements VectorService {
       }
 
       // Setup LangChain vectorstore if embedding service is LangChain-based
-      if (this.embeddingService instanceof LangChainEmbeddingService) {
-        this.vectorStore = await QdrantVectorStore.fromExistingCollection(
+      if (this.embeddings instanceof LangChainEmbeddings) {
+        this.vectorStore = await QdrantVectorStoreType.fromExistingCollection(
           // @ts-expect-error - The LangChain type expects a specific property not easily accessible
-          this.embeddingService.embeddings,
+          this.embeddings.embeddings,
           {
             url: env.QDRANT_URL,
             collectionName: this.collectionName,
@@ -81,7 +77,7 @@ export class QdrantVectorService implements VectorService {
       const scoreThreshold = options?.threshold || 0.7
 
       // If we have a LangChain vectorstore instance, use it for more efficient search
-      if (this.vectorStore && this.embeddingService instanceof LangChainEmbeddingService) {
+      if (this.vectorStore && this.embeddings instanceof LangChainEmbeddings) {
         const results = await this.vectorStore.similaritySearchWithScore(query, limit)
 
         return results
@@ -95,7 +91,7 @@ export class QdrantVectorService implements VectorService {
       }
 
       // Fallback to direct Qdrant client if LangChain vectorstore isn't available
-      const queryEmbedding = await this.embeddingService.getEmbedding(query)
+      const queryEmbedding = await this.embeddings.getEmbedding(query)
 
       const searchResults = await this.client.search(this.collectionName, {
         vector: queryEmbedding,
@@ -126,7 +122,7 @@ export class QdrantVectorService implements VectorService {
       const documentMetadata = { ...metadata, id }
 
       // If we have a LangChain vectorstore, use it
-      if (this.vectorStore && this.embeddingService instanceof LangChainEmbeddingService) {
+      if (this.vectorStore && this.embeddings instanceof LangChainEmbeddings) {
         const document = new Document({
           pageContent: content,
           metadata: documentMetadata,
@@ -135,7 +131,7 @@ export class QdrantVectorService implements VectorService {
         await this.vectorStore.addDocuments([document])
       } else {
         // Fallback to direct Qdrant client
-        const embedding = await this.embeddingService.getEmbedding(content)
+        const embedding = await this.embeddings.getEmbedding(content)
 
         await this.client.upsert(this.collectionName, {
           points: [
@@ -163,14 +159,14 @@ export class QdrantVectorService implements VectorService {
 }
 
 // Export an in-memory implementation for testing or when Qdrant is not available
-export class InMemoryVectorService implements VectorService {
+export class InMemoryVectorService implements VectorStore {
   private documents: Map<string, { content: string; metadata?: Record<string, unknown> }> =
     new Map()
-  private embeddingService: EmbeddingService
+  private embeddings: Embeddings
 
-  constructor(embeddingService?: EmbeddingService) {
+  constructor(embeddings?: Embeddings) {
     // Use the mock embedding service to simulate vector similarity
-    this.embeddingService = embeddingService || new MockEmbeddingService()
+    this.embeddings = embeddings || new MockEmbeddings()
   }
 
   // Simple vector search implementation that uses the mock embedding service
@@ -181,12 +177,12 @@ export class InMemoryVectorService implements VectorService {
 
     try {
       // Get the query embedding
-      const queryEmbedding = await this.embeddingService.getEmbedding(query)
+      const queryEmbedding = await this.embeddings.getEmbedding(query)
       const results: RetrievalResult[] = []
 
       // Calculate similarity for each document
       for (const [id, doc] of this.documents.entries()) {
-        const docEmbedding = await this.embeddingService.getEmbedding(doc.content)
+        const docEmbedding = await this.embeddings.getEmbedding(doc.content)
         const score = this.cosineSimilarity(queryEmbedding, docEmbedding)
 
         // Only include results above threshold (if specified)

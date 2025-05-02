@@ -1,5 +1,5 @@
 {
-  "name": "@workspace/use-cases",
+  "name": "@workspace/integrations",
   "version": "0.0.1",
   "private": true,
   "main": "./src/index.ts",
@@ -13,7 +13,6 @@
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "@workspace/domains": "workspace:*",
-    "@workspace/integrations": "workspace:*",
     "typescript": "^5.3.3"
   }
 }

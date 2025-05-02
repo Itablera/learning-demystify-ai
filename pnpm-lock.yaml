@@ -305,9 +305,6 @@ importers:
         specifier: ^3.24.2
         version: 3.24.2
     devDependencies:
-      '@workspace/types':
-        specifier: workspace:*
-        version: link:../types
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
@@ -350,6 +347,21 @@ importers:
       typescript-eslint:
         specifier: ^8.24.1
         version: 8.24.1(eslint@9.20.1(jiti@2.4.2))(typescript@5.7.3)
+
+  packages/integrations:
+    devDependencies:
+      '@workspace/domains':
+        specifier: workspace:*
+        version: link:../domains
+      '@workspace/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: ^5.3.3
+        version: 5.7.3
 
   packages/types:
     dependencies:
@@ -431,14 +443,16 @@ importers:
         version: 5.7.3
 
   packages/use-cases:
-    dependencies:
+    devDependencies:
       '@workspace/domains':
         specifier: workspace:*
         version: link:../domains
-    devDependencies:
       '@workspace/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
+      '@workspace/integrations':
+        specifier: workspace:*
+        version: link:../integrations
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config

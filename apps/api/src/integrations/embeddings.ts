@@ -1,11 +1,11 @@
 import { env } from '@/env'
 import { OllamaEmbeddings } from '@langchain/ollama'
-import { EmbeddingService } from '@workspace/domains'
+import { Embeddings } from '@workspace/integrations'
 
 /**
  * Embedding service using LangChain's OllamaEmbeddings class
  */
-export class LangChainEmbeddingService implements EmbeddingService {
+export class LangChainEmbeddings implements Embeddings {
   private embeddings: OllamaEmbeddings
   private dimension: number
 
@@ -58,7 +58,7 @@ export class LangChainEmbeddingService implements EmbeddingService {
 /**
  * Mock embedding service for testing
  */
-export class MockEmbeddingService implements EmbeddingService {
+export class MockEmbeddings implements Embeddings {
   private dimension: number
 
   constructor(dimension: number = env.EMBEDDING_DIMENSION) {

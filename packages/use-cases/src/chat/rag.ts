@@ -1,11 +1,6 @@
 // filepath: /Users/perlinde/repositories/learning-demystify-ai/packages/use-cases/src/chat/rag.ts
-import {
-  AIService,
-  ChatRepository,
-  Message,
-  RetrievalResult,
-  VectorService,
-} from '@workspace/domains/src/chat'
+import { ChatRepository, Message, RetrievalResult } from '@workspace/domains'
+import { AI, VectorStore } from '@workspace/integrations'
 import { addMessage } from './message'
 import { getConversation } from './conversation'
 
@@ -14,7 +9,7 @@ import { getConversation } from './conversation'
  */
 export async function addMessageAndRetrieveContext(
   chatRepository: ChatRepository,
-  vectorService: VectorService,
+  vectorStore: VectorStore,
   conversationId: string,
   message: string
 ): Promise<{ messages: Message[]; retrievalResults: RetrievalResult[] }> {
@@ -28,7 +23,7 @@ export async function addMessageAndRetrieveContext(
   }
 
   // 3. Retrieve context from vector store
-  const retrievalResults = await vectorService.vectorSearch(message)
+  const retrievalResults = await vectorStore.vectorSearch(message)
   return { messages: conversation.messages, retrievalResults }
 }
 
@@ -37,8 +32,8 @@ export async function addMessageAndRetrieveContext(
  */
 export async function generateChatResponse(
   chatRepository: ChatRepository,
-  vectorService: VectorService,
-  aiService: AIService,
+  vectorStore: VectorStore,
+  ai: AI,
   conversationId: string,
   message: string
 ): Promise<{
@@ -46,13 +41,13 @@ export async function generateChatResponse(
 }> {
   const { messages, retrievalResults } = await addMessageAndRetrieveContext(
     chatRepository,
-    vectorService,
+    vectorStore,
     conversationId,
     message
   )
 
   // Call AI and generate the response
-  const assistantResponse = await aiService.generateCompletion(messages, retrievalResults)
+  const assistantResponse = await ai.generateCompletion(messages, retrievalResults)
   const assistantMessage = await addMessage(
     chatRepository,
     conversationId,
@@ -71,20 +66,20 @@ export async function generateChatResponse(
  */
 export async function* streamChatResponse(
   chatRepository: ChatRepository,
-  vectorService: VectorService,
-  aiService: AIService,
+  vectorStore: VectorStore,
+  ai: AI,
   conversationId: string,
   message: string
 ): AsyncGenerator<string> {
   const { messages, retrievalResults } = await addMessageAndRetrieveContext(
     chatRepository,
-    vectorService,
+    vectorStore,
     conversationId,
     message
   )
 
   // Call AI and stream the response
-  const assistantResponseGenerator = aiService.streamCompletion(messages, retrievalResults)
+  const assistantResponseGenerator = ai.streamCompletion(messages, retrievalResults)
 
   for await (const chunk of assistantResponseGenerator) {
     yield chunk
@@ -95,9 +90,9 @@ export async function* streamChatResponse(
  * Add a document to the vector store
  */
 export async function addDocument(
-  vectorService: VectorService,
+  vectorStore: VectorStore,
   content: string,
   metadata?: Record<string, unknown>
 ): Promise<string> {
-  return vectorService.addDocument(content, metadata)
+  return vectorStore.addDocument(content, metadata)
 }

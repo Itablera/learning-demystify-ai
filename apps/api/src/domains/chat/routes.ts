@@ -19,7 +19,11 @@ import {
 
 export async function chatRoutes(routes: RoutesProvider): Promise<void> {
   // Initialize services using the factory
-  const { chatRepository, vectorService, aiService } = ChatServiceFactory.createServices()
+  const {
+    chatRepository,
+    vectorStore: vectorService,
+    ai: aiService,
+  } = ChatServiceFactory.createServices()
 
   // Initialize the vector service
   await ChatServiceFactory.initializeVectorService(vectorService)

@@ -3,6 +3,3 @@ export * from './schema'
 
 // Export repository interfaces
 export * from './repository'
-
-// Export service interfaces
-export * from './services'

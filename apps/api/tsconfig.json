@@ -7,6 +7,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@workspace/domains": ["../../packages/domains/src/index.ts"],
+      "@workspace/integrations": ["../../packages/integrations/src/index.ts"],
       "@workspace/use-cases": ["../../packages/use-cases/src/index.ts"],
       "@workspace/api": ["../../packages/api/src/index.ts"]
     }

@@ -6,8 +6,7 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@workspace/domains": ["../domains/src/index.ts"],
-      "@workspace/integrations/*": ["../integrations/src/*"]
+      "@workspace/domains": ["../domains/src/index.ts"]
     }
   }
 }
