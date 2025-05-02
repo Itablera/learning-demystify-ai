@@ -6,14 +6,16 @@
   "types": "./src/index.ts",
   "scripts": {
     "lint": "eslint .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:verbose": "vitest run --reporter verbose"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@workspace/eslint-config": "workspace:*",
-    "@workspace/typescript-config": "workspace:*",
     "@workspace/domains": "workspace:*",
+    "@workspace/eslint-config": "workspace:*",
     "@workspace/integrations": "workspace:*",
-    "typescript": "^5.3.3"
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5.3.3",
+    "vitest": "^3.1.1"
   }
 }

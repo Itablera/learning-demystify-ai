@@ -105,6 +105,9 @@ importers:
       '@workspace/domains':
         specifier: workspace:*
         version: link:../../packages/domains
+      '@workspace/integrations':
+        specifier: workspace:*
+        version: link:../../packages/integrations
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
@@ -459,6 +462,9 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.7.3
+      vitest:
+        specifier: ^3.1.1
+        version: 3.1.2(@types/node@20.17.19)(jiti@2.4.2)(lightningcss@1.29.2)(tsx@4.19.3)(yaml@2.7.1)
 
 packages:
 
