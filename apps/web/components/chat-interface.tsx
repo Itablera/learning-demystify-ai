@@ -118,8 +118,16 @@ export default function ChatInterface() {
     }
   }
 
+  const handleTestClick = async () => {
+    const { runTests } = await import('@/lib/test-chat')
+    await runTests()
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
+      <Button className="fixed bottom-4 right-4" onClick={handleTestClick} variant="outline">
+        Run Tests
+      </Button>
       {/* Mobile sidebar toggle */}
       {isMobile && (
         <button

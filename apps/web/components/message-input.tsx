@@ -2,7 +2,7 @@
 
 import type React from 'react'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import type { Message } from '@/types/chat'
 import { Button } from '@workspace/ui/components/button'
 import { Textarea } from '@workspace/ui/components/textarea'
@@ -19,6 +19,8 @@ export default function MessageInput({ conversationId, onMessageSent }: MessageI
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
+  const assistantMessageRef = useRef<Message | null>(null)
+  const userMessageRef = useRef<Message | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,6 +32,7 @@ export default function MessageInput({ conversationId, onMessageSent }: MessageI
 
       // Send user message
       const userMessage = await sendMessage(conversationId, message, 'user')
+      userMessageRef.current = userMessage
 
       // Update UI with user message
       onMessageSent([userMessage])
@@ -41,7 +44,8 @@ export default function MessageInput({ conversationId, onMessageSent }: MessageI
       const controller = new AbortController()
       const signal = controller.signal
 
-      let assistantMessage: Message = {
+      // Create a temporary placeholder message for the assistant
+      const tempAssistantMessage: Message = {
         id: 'temp-' + Date.now(),
         role: 'assistant',
         content: '',
@@ -49,22 +53,38 @@ export default function MessageInput({ conversationId, onMessageSent }: MessageI
       }
 
       // Add empty assistant message to UI
-      onMessageSent([userMessage, assistantMessage])
+      assistantMessageRef.current = tempAssistantMessage
+      onMessageSent([userMessage, tempAssistantMessage])
 
       // Start streaming
       await streamCompletion(
         conversationId,
         message,
         chunk => {
-          // Update assistant message content as chunks arrive
-          assistantMessage = {
-            ...assistantMessage,
-            content: assistantMessage.content + chunk.content,
-            id: chunk.done ? chunk.id : assistantMessage.id,
-          }
+          if (assistantMessageRef.current) {
+            // Set the real message ID from the server once we receive it
+            const currentContent = assistantMessageRef.current.content
 
-          // Update UI with current state of assistant message
-          onMessageSent([userMessage, assistantMessage])
+            // Update assistant message with new content and proper ID
+            const updatedMessage = {
+              ...assistantMessageRef.current,
+              id: chunk.id, // Always use the ID from the server
+              content: currentContent + chunk.content,
+            }
+
+            // Store the updated message in the ref
+            assistantMessageRef.current = updatedMessage
+
+            // Update UI with current user message and updated assistant message
+            if (userMessageRef.current) {
+              onMessageSent([userMessageRef.current, updatedMessage])
+            }
+
+            // If this is the final chunk, log completion
+            if (chunk.done) {
+              console.log('Streaming completed for chunk:', chunk)
+            }
+          }
         },
         signal
       )
@@ -72,9 +92,10 @@ export default function MessageInput({ conversationId, onMessageSent }: MessageI
       if (error instanceof Error && error.name !== 'AbortError') {
         toast({
           title: 'Error',
-          description: 'Failed to send message',
+          description: `Failed to send message: ${error.message}`,
           variant: 'destructive',
         })
+        console.error('Message error:', error)
       }
     } finally {
       setIsLoading(false)

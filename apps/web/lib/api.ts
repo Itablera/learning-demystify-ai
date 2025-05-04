@@ -1,4 +1,5 @@
 import type { Conversation, Message } from '@/types/chat'
+import { runTests } from './test-chat'
 
 const API_BASE_URL = 'http://localhost:3000/api/chat'
 
@@ -10,6 +11,9 @@ const defaultFetchOptions: RequestInit = {
     accept: 'application/json',
   },
 }
+
+// Execute the tests
+runTests().catch(console.error)
 
 // Error handling helper
 async function handleResponse(response: Response) {
@@ -82,50 +86,74 @@ export async function streamCompletion(
   onChunk: (chunk: { id: string; content: string; done: boolean }) => void,
   signal?: AbortSignal
 ): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}/completions`, {
-    ...defaultFetchOptions,
-    method: 'POST',
-    headers: {
-      ...defaultFetchOptions.headers,
-      Accept: 'text/event-stream',
-    },
-    body: JSON.stringify({ message }),
-    signal,
-  })
+  try {
+    console.log(`Streaming completion for conversation: ${conversationId}`)
+    const url = `${API_BASE_URL}/conversations/${conversationId}/completions`
+    console.log(`Fetching from URL: ${url}`)
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Stream error: ${response.status} ${errorText}`)
-  }
+    const response = await fetch(url, {
+      ...defaultFetchOptions,
+      method: 'POST',
+      headers: {
+        ...defaultFetchOptions.headers,
+        accept: 'text/event-stream',
+      },
+      body: JSON.stringify({ message }),
+      signal,
+    })
 
-  const reader = response.body?.getReader()
-  if (!reader) throw new Error('Response body is not readable')
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`Stream error: ${response.status} ${errorText}`)
+      throw new Error(`Stream error: ${response.status} ${errorText}`)
+    }
 
-  const decoder = new TextDecoder()
-  let buffer = ''
+    const reader = response.body?.getReader()
+    if (!reader) throw new Error('Response body is not readable')
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+    const decoder = new TextDecoder()
+    let buffer = ''
 
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() || ''
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
 
-    for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        try {
-          const data = JSON.parse(line.slice(6))
-          onChunk(data)
+      buffer += decoder.decode(value, { stream: true })
 
-          if (data.done) {
-            return
+      // Process complete SSE events (separated by double newlines)
+      const events = buffer.split('\n\n')
+      // Keep the last part in the buffer if it's incomplete
+      buffer = events.pop() || ''
+
+      for (const event of events) {
+        const trimmedEvent = event.trim()
+        if (trimmedEvent.startsWith('data: ')) {
+          try {
+            const data = JSON.parse(trimmedEvent.slice(6))
+            onChunk(data)
+
+            if (data.done) {
+              return
+            }
+          } catch (e) {
+            console.error('Error parsing SSE data:', e)
           }
-        } catch (e) {
-          console.error('Error parsing SSE data:', e)
         }
       }
     }
+
+    // Process any remaining data in the buffer
+    if (buffer.trim() && buffer.trim().startsWith('data: ')) {
+      try {
+        const data = JSON.parse(buffer.trim().slice(6))
+        onChunk(data)
+      } catch (e) {
+        console.error('Error parsing final SSE data:', e)
+      }
+    }
+  } catch (error) {
+    console.error('Streaming error:', error)
+    throw error
   }
 }
 
