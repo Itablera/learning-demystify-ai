@@ -1,4 +1,9 @@
-import { Document, DocumentChunk, DocumentRepository, TextChunkingOptions } from '@workspace/domains'
+import {
+  Document,
+  DocumentChunk,
+  DocumentRepository,
+  TextChunkingOptions,
+} from '@workspace/domains'
 import { Embeddings, TextSplitter } from '@workspace/integrations'
 
 interface IngestDocumentDependencies {
@@ -28,14 +33,14 @@ export const ingestDocument = async (
   const textChunks = await textSplitter.splitText(content, chunkingOptions)
 
   // Create document chunks with embeddings
-  const chunkPromises = textChunks.map(async (chunkContent) => {
+  const chunkPromises = textChunks.map(async chunkContent => {
     // Generate embedding for this chunk
     const embedding = await embeddings.getEmbedding(chunkContent)
-    
+
     return {
       content: chunkContent,
       metadata,
-      embedding
+      embedding,
     }
   })
 

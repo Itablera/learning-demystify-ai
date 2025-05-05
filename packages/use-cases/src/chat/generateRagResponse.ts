@@ -1,9 +1,9 @@
-import { 
-  Message, 
-  Conversation, 
-  ChatRepository, 
+import {
+  Message,
+  Conversation,
+  ChatRepository,
   RetrievalResult,
-  VectorSearchOptions 
+  VectorSearchOptions,
 } from '@workspace/domains'
 import { AI, Retriever } from '@workspace/integrations'
 
@@ -35,7 +35,7 @@ export const generateRagResponse = async (
   // Add user message to conversation
   const newUserMessage = await chatRepository.addMessage(conversationId, {
     role: 'user',
-    content: userMessage
+    content: userMessage,
   })
 
   // Retrieve relevant information (RAG)
@@ -48,7 +48,7 @@ export const generateRagResponse = async (
   // Store assistant response
   const assistantMessage = await chatRepository.addMessage(conversationId, {
     role: 'assistant',
-    content: completion
+    content: completion,
   })
 
   return assistantMessage
@@ -73,7 +73,7 @@ export const streamRagResponse = async function* (
   // Add user message to conversation
   const newUserMessage = await chatRepository.addMessage(conversationId, {
     role: 'user',
-    content: userMessage
+    content: userMessage,
   })
 
   // Retrieve relevant information (RAG)
@@ -81,7 +81,7 @@ export const streamRagResponse = async function* (
 
   // Get all messages for the conversation
   const messages = await chatRepository.getMessages(conversationId)
-  
+
   // Stream response with context
   let fullResponse = ''
   for await (const chunk of ai.streamCompletion(messages, retrievalResults)) {
@@ -92,6 +92,6 @@ export const streamRagResponse = async function* (
   // Store complete assistant response once streaming is complete
   await chatRepository.addMessage(conversationId, {
     role: 'assistant',
-    content: fullResponse
+    content: fullResponse,
   })
 }

@@ -11,7 +11,7 @@ export interface Retriever {
    * @param options Optional vector search configuration
    */
   retrieve(query: string, options?: VectorSearchOptions): Promise<RetrievalResult[]>
-  
+
   /**
    * Add a document to the retriever's knowledge base
    * @param content Document content

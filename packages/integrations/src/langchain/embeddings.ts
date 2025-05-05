@@ -8,7 +8,7 @@ import { Embeddings } from '../embeddings'
  */
 export class LangChainEmbeddings implements Embeddings {
   private embeddingModel: OllamaEmbeddings | OpenAIEmbeddings
-  
+
   constructor(
     providerType: 'ollama' | 'openai' = 'ollama',
     options: {
@@ -17,27 +17,27 @@ export class LangChainEmbeddings implements Embeddings {
     } = {}
   ) {
     const { modelName, apiKey } = options
-    
+
     if (providerType === 'ollama') {
       this.embeddingModel = new OllamaEmbeddings({
         model: modelName || 'nomic-embed-text',
-        baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
+        baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
       })
     } else {
       this.embeddingModel = new OpenAIEmbeddings({
         modelName: modelName || 'text-embedding-3-small',
-        openAIApiKey: apiKey || process.env.OPENAI_API_KEY
+        openAIApiKey: apiKey || process.env.OPENAI_API_KEY,
       })
     }
   }
-  
+
   /**
    * Get embedding vector for a single text
    */
   async getEmbedding(text: string): Promise<number[]> {
     return this.embeddingModel.embedQuery(text)
   }
-  
+
   /**
    * Get embedding vectors for multiple texts (batch processing)
    */

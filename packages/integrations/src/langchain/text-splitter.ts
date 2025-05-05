@@ -10,12 +10,12 @@ export class LangChainTextSplitter implements TextSplitter {
   async splitText(text: string, options?: TextChunkingOptions): Promise<string[]> {
     const chunkSize = options?.chunkSize || 1000
     const chunkOverlap = options?.chunkOverlap || 200
-    
+
     const splitter = new RecursiveCharacterTextSplitter({
       chunkSize,
-      chunkOverlap
+      chunkOverlap,
     })
-    
+
     return splitter.splitText(text)
   }
 }

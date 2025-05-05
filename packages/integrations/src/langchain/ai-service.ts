@@ -3,11 +3,11 @@ import { AI } from '../ai'
 import { ChatOllama } from '@langchain/ollama'
 import { OllamaEmbeddings } from '@langchain/ollama'
 import { StringOutputParser } from '@langchain/core/output_parsers'
-import { 
-  ChatPromptTemplate, 
+import {
+  ChatPromptTemplate,
   SystemMessagePromptTemplate,
   HumanMessagePromptTemplate,
-  AIMessagePromptTemplate
+  AIMessagePromptTemplate,
 } from '@langchain/core/prompts'
 
 /**
@@ -28,12 +28,12 @@ export class LangChainAI implements AI {
       model: modelName,
       temperature: 0.7,
     })
-    
+
     this.embeddings = new OllamaEmbeddings({
       model: embeddingModel,
       toplP: 0.9,
     })
-    
+
     this.baseSystemPrompt = baseSystemPrompt
   }
 
@@ -43,39 +43,45 @@ export class LangChainAI implements AI {
     return result
   }
 
-  async *streamCompletion(messages: Message[], context?: RetrievalResult[]): AsyncGenerator<string> {
+  async *streamCompletion(
+    messages: Message[],
+    context?: RetrievalResult[]
+  ): AsyncGenerator<string> {
     const promptMessages = this.buildPromptMessages(messages, context)
     const stream = await promptMessages.pipe(this.llm).pipe(new StringOutputParser()).stream()
-    
+
     for await (const chunk of stream) {
       yield chunk
     }
   }
-  
+
   async generateEmbedding(text: string): Promise<number[]> {
     return this.embeddings.embedQuery(text)
   }
-  
+
   async generateEmbeddings(texts: string[]): Promise<number[][]> {
     return this.embeddings.embedDocuments(texts)
   }
-  
+
   private buildPromptMessages(messages: Message[], context?: RetrievalResult[]) {
     let systemContent = this.baseSystemPrompt
-    
+
     // Add retrieval context if available
     if (context && context.length > 0) {
       const contextText = context
-        .map(item => `Content: "${item.content}"\n${item.metadata ? `Source: ${JSON.stringify(item.metadata)}\n` : ''}`)
+        .map(
+          item =>
+            `Content: "${item.content}"\n${item.metadata ? `Source: ${JSON.stringify(item.metadata)}\n` : ''}`
+        )
         .join('\n\n')
-      
+
       systemContent += `\n\nUse the following information to answer the user's question. If the information doesn't contain the answer, just say so.\n\n${contextText}`
     }
-    
+
     // Create prompt template
     const promptMessages = []
     promptMessages.push(SystemMessagePromptTemplate.fromTemplate(systemContent))
-    
+
     // Add conversation history
     for (const message of messages) {
       if (message.role === 'user') {
@@ -87,7 +93,7 @@ export class LangChainAI implements AI {
         promptMessages.push(SystemMessagePromptTemplate.fromTemplate(message.content))
       }
     }
-    
+
     return ChatPromptTemplate.fromMessages(promptMessages)
   }
 }
