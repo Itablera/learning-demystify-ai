@@ -170,6 +170,39 @@ export async function chatRoutes(routes: RoutesProvider): Promise<void> {
     }
   )
 
+  // Genereate a chat completion with RAG without streaming
+  routes.post(
+    '/conversations/:id/completions/no-stream',
+    {
+      schema: {
+        params: IdParamsSchema,
+        body: ChatCompletionRequestSchema,
+        response: {
+          200: MessagesListResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params
+      const { message } = request.body
+      const { messages, retrievalResults } = await chatUseCases.addMessageAndRetrieveContext(
+        chatRepository,
+        vectorService,
+        id,
+        message
+      )
+      const assistantMessage = await chatUseCases.addMessage(chatRepository, id, 'assistant', '')
+      const resultMessageId = assistantMessage.id
+      const aiResponse = await aiService.generateCompletion(messages, retrievalResults)
+      const updatedConversation = await chatRepository.updateConversation(id, {
+        messages: messages.map(m => (m.id === resultMessageId ? { ...m, content: aiResponse } : m)),
+      })
+      return {
+        data: updatedConversation.messages,
+        success: true,
+      }
+    }
+  )
   // Generate a chat completion with RAG and streaming
   routes.post(
     '/conversations/:id/completions',
