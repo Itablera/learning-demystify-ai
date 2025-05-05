@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from 'react'
 
 export const useMobile = () => {
   const [isMobile, setIsMobile] = useState(false)
@@ -14,11 +14,11 @@ export const useMobile = () => {
     handleResize()
 
     // Listen for window resize events
-    window.addEventListener("resize", handleResize)
+    window.addEventListener('resize', handleResize)
 
     // Clean up event listener on unmount
     return () => {
-      window.removeEventListener("resize", handleResize)
+      window.removeEventListener('resize', handleResize)
     }
   }, [])
 
