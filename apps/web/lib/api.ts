@@ -13,7 +13,7 @@ const defaultFetchOptions: RequestInit = {
 }
 
 // Execute the tests
-runTests().catch(console.error)
+//runTests().catch(console.error)
 
 // Error handling helper
 async function handleResponse(response: Response) {
@@ -81,6 +81,42 @@ export async function sendMessage(
 
 // Streaming Completion
 export async function streamCompletion(
+  conversationId: string,
+  message: string,
+  onChunk: (chunk: { id: string; content: string; done: boolean }) => void,
+  signal?: AbortSignal
+): Promise<void> {
+  try {
+    console.log(`Streaming completion for conversation: ${conversationId}`)
+    const url = `${API_BASE_URL}/conversations/${conversationId}/completions`
+
+    console.log(`Fetching from URL: ${url}`)
+    const response = await fetch(url, {
+      ...defaultFetchOptions,
+      method: 'POST',
+      headers: {
+        ...defaultFetchOptions.headers,
+        accept: 'text/event-stream',
+      },
+      body: JSON.stringify({ message }),
+    })
+    if (!response.body) {
+      throw new Error('Response body is not readable')
+    }
+    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+      console.log('Received', value)
+    }
+  } catch (error) {
+    console.error('Streaming error:', error)
+    throw error
+  }
+}
+
+// Streaming Completion
+export async function streamCompletion_bak(
   conversationId: string,
   message: string,
   onChunk: (chunk: { id: string; content: string; done: boolean }) => void,
