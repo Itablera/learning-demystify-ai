@@ -1,4 +1,4 @@
-import { QdrantClient } from '@qdrant/js-client-rest'
+import { QdrantVectorStore } from '@langchain/qdrant'
 import { RetrievalResult, VectorSearchOptions } from '@workspace/domains'
 import { Retriever } from '../retriever'
 import { Embeddings } from '../embeddings'
@@ -8,7 +8,7 @@ import { nanoid } from 'nanoid'
  * LangChain implementation of the Retriever interface using Qdrant vector database
  */
 export class QdrantRetriever implements Retriever {
-  private client: QdrantClient
+  private vectorStore: QdrantVectorStore
   private embeddings: Embeddings
   private collectionName: string
 
@@ -22,31 +22,37 @@ export class QdrantRetriever implements Retriever {
   ) {
     const { qdrantUrl = 'http://localhost:6333', qdrantApiKey } = options
 
-    this.client = new QdrantClient({
-      url: qdrantUrl,
-      apiKey: qdrantApiKey,
-    })
-
     this.embeddings = embeddings
     this.collectionName = collectionName
+
+    // Create LangChain's QdrantVectorStore with a compatible embeddings interface
+    const langchainEmbeddings = {
+      embedQuery: async (text: string) => this.embeddings.getEmbedding(text),
+      embedDocuments: async (texts: string[]) => {
+        // Use batch embedding if available, otherwise fallback to sequential
+        if (this.embeddings.embedBatch) {
+          return this.embeddings.embedBatch(texts)
+        }
+        return Promise.all(texts.map(text => this.embeddings.getEmbedding(text)))
+      },
+    }
+
+    this.vectorStore = new QdrantVectorStore(langchainEmbeddings, {
+      url: qdrantUrl,
+      collectionName,
+    })
   }
 
   /**
    * Initialize the retriever by ensuring the collection exists
    */
   async initialize(vectorSize: number = 768): Promise<void> {
-    // Check if collection exists
-    const collections = await this.client.getCollections()
-    const exists = collections.collections.some(c => c.name === this.collectionName)
-
-    if (!exists) {
-      // Create collection if it doesn't exist
-      await this.client.createCollection(this.collectionName, {
-        vectors: {
-          size: vectorSize,
-          distance: 'Cosine',
-        },
-      })
+    try {
+      // Use LangChain's method to ensure collection exists or create it
+      await this.vectorStore.ensureCollection()
+    } catch (error) {
+      console.error('Error initializing QdrantVectorStore:', error)
+      throw error
     }
   }
 
@@ -57,23 +63,21 @@ export class QdrantRetriever implements Retriever {
     const limit = options?.limit ?? 5
     const scoreThreshold = options?.threshold ?? 0.7
 
-    // Generate embedding for the query
-    const embedding = await this.embeddings.getEmbedding(query)
+    // Use LangChain's similaritySearchWithScore to retrieve documents
+    try {
+      const results = await this.vectorStore.similaritySearchWithScore(query, limit)
 
-    // Search for similar vectors
-    const searchResult = await this.client.search(this.collectionName, {
-      vector: embedding,
-      limit,
-      score_threshold: scoreThreshold,
-    })
-
-    // Map to RetrievalResult format
-    return searchResult.map(hit => ({
-      id: hit.id.toString(),
-      content: hit.payload.content as string,
-      metadata: hit.payload.metadata as Record<string, unknown> | undefined,
-      score: hit.score,
-    }))
+      // Transform to match our RetrievalResult interface
+      return results.map(([doc, score]) => ({
+        id: doc.metadata?.id?.toString() || nanoid(),
+        content: doc.pageContent,
+        metadata: doc.metadata as Record<string, unknown>,
+        score,
+      }))
+    } catch (error) {
+      console.error('Error retrieving documents:', error)
+      throw error
+    }
   }
 
   /**
@@ -81,23 +85,23 @@ export class QdrantRetriever implements Retriever {
    */
   async addDocument(content: string, metadata?: Record<string, unknown>): Promise<string> {
     const id = nanoid()
-    const embedding = await this.embeddings.getEmbedding(content)
 
-    // Add point to collection
-    await this.client.upsert(this.collectionName, {
-      wait: true,
-      points: [
+    try {
+      // Use LangChain's addDocuments method to add a document with metadata
+      await this.vectorStore.addDocuments([
         {
-          id,
-          vector: embedding,
-          payload: {
-            content,
-            metadata,
+          pageContent: content,
+          metadata: {
+            ...metadata,
+            id,
           },
         },
-      ],
-    })
+      ])
 
-    return id
+      return id
+    } catch (error) {
+      console.error('Error adding document:', error)
+      throw error
+    }
   }
 }

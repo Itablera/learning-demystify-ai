@@ -9,6 +9,7 @@ import {
   HumanMessagePromptTemplate,
   AIMessagePromptTemplate,
 } from '@langchain/core/prompts'
+import { RunnableSequence } from '@langchain/core/runnables'
 
 /**
  * LangChain implementation of the AI service interface
@@ -31,7 +32,6 @@ export class LangChainAI implements AI {
 
     this.embeddings = new OllamaEmbeddings({
       model: embeddingModel,
-      toplP: 0.9,
     })
 
     this.baseSystemPrompt = baseSystemPrompt
@@ -39,8 +39,8 @@ export class LangChainAI implements AI {
 
   async generateCompletion(messages: Message[], context?: RetrievalResult[]): Promise<string> {
     const promptMessages = this.buildPromptMessages(messages, context)
-    const result = await promptMessages.pipe(this.llm).pipe(new StringOutputParser()).invoke()
-    return result
+    const chain = RunnableSequence.from([promptMessages, this.llm, new StringOutputParser()])
+    return chain.invoke(promptMessages)
   }
 
   async *streamCompletion(
@@ -48,7 +48,8 @@ export class LangChainAI implements AI {
     context?: RetrievalResult[]
   ): AsyncGenerator<string> {
     const promptMessages = this.buildPromptMessages(messages, context)
-    const stream = await promptMessages.pipe(this.llm).pipe(new StringOutputParser()).stream()
+    const chain = RunnableSequence.from([promptMessages, this.llm, new StringOutputParser()])
+    const stream = await chain.stream(promptMessages)
 
     for await (const chunk of stream) {
       yield chunk

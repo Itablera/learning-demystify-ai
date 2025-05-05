@@ -23,7 +23,7 @@ interface IngestDocumentDependencies {
 export const ingestDocument = async (
   content: string,
   metadata: Record<string, unknown> = {},
-  chunkingOptions?: TextChunkingOptions,
+  chunkingOptions: TextChunkingOptions,
   { documentRepository, textSplitter, embeddings }: IngestDocumentDependencies
 ): Promise<Document> => {
   // Create document record

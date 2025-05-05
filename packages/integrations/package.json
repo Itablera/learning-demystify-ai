@@ -8,11 +8,17 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@langchain/core": "^0.3.46",
+    "@langchain/ollama": "^0.2.0",
+    "@langchain/qdrant": "^0.1.2",
+    "@langchain/textsplitters": "^0.1.0",
+    "nanoid": "^5.1.5"
+  },
   "devDependencies": {
+    "@workspace/domains": "workspace:*",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "@workspace/domains": "workspace:*",
     "typescript": "^5.3.3"
   }
 }
