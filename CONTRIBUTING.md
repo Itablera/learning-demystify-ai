@@ -8,9 +8,10 @@ Welcome to the Learning Demystify AI monorepo! This guide explains architecture 
 
 | Package                   | Purpose                                                 |
 | ------------------------- | ------------------------------------------------------- |
-| `@workspace/domains`      | Shared types, domain logic, Zod schemas, use-cases      |
+| `@workspace/domains`      | Shared types, domain logic, Zod schemas                 |
 | `@workspace/api`          | API-layer DTOs (request/response shapes)                |
-| `@workspace/types`        | Shared utility types and enums                          |
+| `@workspace/use-cases`    | Business logic and use-cases                            |
+| `@workspace/integrations` | Integrations and adapters                               |
 | `apps/api`                | Fastify routes, controllers, repository implementations |
 | `apps/web`                | Next.js frontend application                            |
 | `apps/deepseek-r1-webgpu` | Demo application to run DeepSeek on WebGPU              |
@@ -27,6 +28,21 @@ packages/domains/src/[domain]/
 ├── schema.ts            # Domain model and validation schemas
 ├── repository.ts        # Repository interface (implementation in apps/api)
 ├── use-cases.ts         # Pure, reusable business logic
+└── index.ts             # Public exports
+```
+
+Use-cases are organized as:
+
+```
+packages/use-cases/src/[use-case]/
+├── index.ts             # Use-case implementation and exports
+```
+
+Integrations are organized as:
+
+```
+packages/integrations/src/[integration]/
+├── adapter.ts           # Integration adapter implementations
 └── index.ts             # Public exports
 ```
 
@@ -65,6 +81,7 @@ apps/api/src/domains/[domain]/
 - Interface defined in domain package
 - Implementation in apps/api
 - Follow naming convention: `<Domain>Repository` (e.g., `UserRepository`)
+- Use the Repository Pattern strictly for domain model persistence
 - Should not contain business logic—only persistence-related behavior
 
 ---
@@ -74,8 +91,8 @@ apps/api/src/domains/[domain]/
 ### Inside packages
 
 - **Always use relative imports** (e.g., `./foo`, `../bar`) for files within the same package boundary
-- **Never use aliases** like `@/`, `@workspace/domains` or `@workspace/api` for intra-package imports
-- **Only use package imports** (e.g., `@workspace/domains`) when importing from one package to another
+- **Do not use aliases** like `@/` inside packages
+- **Use package imports** (e.g., `@workspace/domains`) when importing from one package to another
 
 ### Inside apps
 
@@ -104,7 +121,7 @@ import { UserAvatar } from '@/components/UserAvatar'
 
 ❌ Domain logic in `apps/api`  
 ❌ Relative imports between packages  
-❌ Business logic inside API routes
+❌ Business logic inside API routes  
 ❌ Aliases like `@/` inside packages
 
 ---

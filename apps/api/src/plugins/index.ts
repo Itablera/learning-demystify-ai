@@ -2,9 +2,18 @@ import { FastifyInstance } from 'fastify'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUI from '@fastify/swagger-ui'
 import fastifySensible from '@fastify/sensible'
+import fastifyCors from '@fastify/cors'
 import { jsonSchemaTransform } from 'fastify-type-provider-zod'
 
 export async function registerPlugins(fastify: FastifyInstance): Promise<void> {
+  // Register CORS middleware to handle cross-origin requests
+  await fastify.register(fastifyCors, {
+    origin: ['http://localhost:5180'], // Allow frontend origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true, // Allow cookies in cross-origin requests
+    allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
+  })
+
   // Register @fastify/sensible for enhanced HTTP errors and utilities
   await fastify.register(fastifySensible)
 

@@ -1,75 +1,38 @@
-# GitHub Copilot Project Instructions
+# GitHub Copilot Agent Instructions
 
-This file contains concise instructions tailored for GitHub Copilot to generate consistent, maintainable, and type-safe code.
+## Project Architecture
 
-## Core Structure and Folder Layout
+- **Monorepo** (Turborepo + pnpm) with `@workspace/*` package scope
+- **Domain-Driven Design (DDD)** with Repository Pattern
+- **Key packages**:
+  - `domains`: Domain types, schemas, repository interfaces
+  - `use-cases`: Pure business logic with dependency injection
+  - `integrations`: External service clients
+  - `api`: API schemas (DTOs)
+  - `apps/api`: Backend implementation
+  - `apps/frontend`: Frontend code
 
-- Monorepo managed using Turborepo
-- Package manager: `pnpm`
-- Domains live under `packages/domains/src` (core logic) and `apps/api/src/domains` (backend implementation)
-- Shared utility types and enums live in `packages/types/src`
-- Backend-specific implementations (e.g., repositories, routes) are in `apps/api/src/domains`
+## Code Guidelines
 
-## Architectural Guidelines
+- **Use-cases**: Pure functions, no infrastructure dependencies
+- **Repositories**: Abstract persistence, implemented per app
+- **Integrations**: Encapsulate external services (not persistence)
 
-The codebase follows Domain-Driven Design (DDD) principles and the Repository Pattern. Each domain encapsulates its own schema, use-cases, and repository interface. Repository implementations are kept separate from domain logic, under `apps/api/src/domains/[domain]/repository.ts`. Repositories should not contain business logic—only persistence-related behavior. Use-cases coordinate business operations and may call repositories, services, or workflows.
+## Testing
 
-## Schema vs DTO Distinction
+- Place tests in `__tests__` directory, use Vitest
+- Create separate mock files for repositories and services
+- Test happy paths, edge cases, and error conditions
+- Use proper type safety with optional chaining (`?.`)
 
-- Core domain schemas and types are defined in `@workspace/domains`
-- API-facing DTO schemas (request/response shapes) are defined in `@workspace/api`
+## Imports
 
-## Package and Import Conventions
+- Relative imports within packages
+- Package aliases (`@workspace/domains`) for cross-package imports
+- `@/` alias for app-local imports
 
-- **Inside packages** (e.g., `packages/domains`, `packages/types`, `packages/api`):
+## Style
 
-  - **Always use relative imports** (e.g., `./foo`, `../bar`) for files within the same package boundary.
-  - **Never use aliases like `@/`, `@workspace/domains` or `@workspace/api`** for intra-package imports.
-  - **Only use `@workspace/domains` or `@workspace/api`** when importing _from_ these packages into other packages or apps.
-
-- **Inside apps** (e.g., `apps/api`, `apps/frontend`):
-
-  - **Use the `@/` alias** (e.g., `@/domains/user/routes`) for internal imports within the same app.
-  - **Use package imports** (e.g., `@workspace/domains` or `@workspace/api`) for importing from shared packages.
-
-- **Never use relative imports that cross domain or package boundaries.**
-
-### Examples
-
-#### Example: Relative imports inside a domain package
-
-```ts
-// In packages/domains/src/user/index.ts
-import { UserSchema } from './schema'
-import { validateUser } from '../utils/validateUser'
-```
-
-#### Example: Importing from packages into an app
-
-```ts
-// In apps/api/src/domains/user/create.ts
-import { UserSchema } from '@workspace/domains'
-import { CreateUserRequestSchema } from '@workspace/api'
-```
-
-#### Example: Using the @/ alias inside an app
-
-```ts
-// In apps/frontend/src/components/UserProfile.tsx
-import { fetchUser } from '@/lib/api'
-import { UserAvatar } from '@/components/UserAvatar'
-```
-
-## Naming Conventions
-
-- Schemas: `<Domain>Schema` (e.g., `UserSchema`)
-- Use-cases: functions named with verbs (e.g., `createUser`, `updateProduct`)
-- Repositories: `<Domain>Repository` (e.g., `UserRepository`)
-- Routes: domain-scoped files like `apps/api/src/domains/user/routes.ts`
-
-## Code Style Hints
-
-- Use single quotes
-- No semicolons
-- Favor explicit, readable, and composable code
-- Write modular logic in small functions where appropriate
+- Pure functions for use-cases, classes for stateful components
+- Single quotes, no semicolons, `const`/`let`, async/await
+- Small, focused files with composable logic

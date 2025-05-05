@@ -1,5 +1,6 @@
 import { MockHealthRepository } from './repository'
 import { HealthResponseSchema } from '@workspace/api'
+import { healthUseCases } from '@workspace/use-cases'
 import { RoutesProvider } from '@/index'
 
 export async function healthRoutes(routes: RoutesProvider) {
@@ -12,7 +13,7 @@ export async function healthRoutes(routes: RoutesProvider) {
       },
     },
     handler: async (request, reply) => {
-      const healthData = await healthRepository.status()
+      const healthData = await healthUseCases.getHealth(healthRepository)
       const response = {
         success: true,
         timestamp: new Date().toISOString(),

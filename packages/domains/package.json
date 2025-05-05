@@ -22,7 +22,6 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@workspace/typescript-config": "workspace:*",
-    "@workspace/types": "workspace:*"
+    "@workspace/typescript-config": "workspace:*"
   }
 }

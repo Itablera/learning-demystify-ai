@@ -1,17 +1,15 @@
-import { Geist, Geist_Mono } from 'next/font/google'
+import type React from 'react'
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import '@workspace/ui/styles/globals.css'
+import { Toaster } from '@workspace/ui/components/toaster'
 
-import '@workspace/ui/globals.css'
-import { Providers } from '@/components/providers'
+const inter = Inter({ subsets: ['latin'] })
 
-const fontSans = Geist({
-  subsets: ['latin'],
-  variable: '--font-sans',
-})
-
-const fontMono = Geist_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-})
+export const metadata: Metadata = {
+  title: 'AI Chat Interface',
+  description: 'A modern chat interface for AI assistants',
+}
 
 export default function RootLayout({
   children,
@@ -19,9 +17,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased `}>
-        <Providers>{children}</Providers>
+    <html lang="en">
+      <body className={inter.className}>
+        {children}
+        <Toaster />
       </body>
     </html>
   )

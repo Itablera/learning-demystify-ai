@@ -1,4 +1,3 @@
-// filepath: /Users/perlinde/repositories/digital-office/packages/common/src/domains/account/index.ts
+// filepath: /Users/perlinde/repositories/learning-demystify-ai/packages/domains/src/health/index.ts
 export * from './schema'
 export * from './repository'
-export * from './use-cases'
