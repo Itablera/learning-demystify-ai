@@ -1,0 +1,7 @@
+- Spend some time to get a good `.github/copilot-instructions.md` file. This file will help you to make Copilot understand how you would like to structure your code, and more.
+  - Some examples:
+    - [use-case driven development in monorepo](https://github.com/Itablera/learning-demystify-ai/blob/main/.github/copilot-instructions.md)
+  - Guidelines:
+    - Keep it short - AI has a tendency to get overwhelmed and start hallucinating if you give it too much information.
+    - Use examples - AI is good at understanding examples, and it will help you to get better results.
+    - Avoid contradictions - Well, self-explanatory perhaps, but can easily happen as AI will just try to do what you ask it to do without protest
