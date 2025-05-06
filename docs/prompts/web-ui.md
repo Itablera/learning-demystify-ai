@@ -1,3 +1,19 @@
+# Chat Interface for AI Assistant Application
+
+At this point we have a complete and working API. We are using Fastify, ZodTypeProvider and Swagger plugin, hence we automatically have a complete OpenAPI schema. We can use this schema to generate a complete client for the API.
+
+However, as the OpenAPI schema does not describe any expectations for the UI, nor does it describe the fact that streaming is to be used, we need to add a bit more to the V0 prompt than just the OpenAPI schema.
+
+I asked Github Copilot to create the prompt with the following prompt (the inception...):
+
+```markdown
+I will use a external AI tool to create a chat interface for the routes in #file:routes.ts . Help me create a suitable prompt that includes example requests and responses in JSON format
+```
+
+This provided the following prompt
+
+## V0 Prompt
+
 I need to create a chat interface for an AI assistant application. The backend uses a RESTful API with the following endpoints:
 
 ## API Endpoints
