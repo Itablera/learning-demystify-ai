@@ -23,7 +23,7 @@ interface GenerateRagResponseDependencies {
 export const generateRagResponse = async (
   conversationId: string,
   userMessage: string,
-  retrievalOptions?: VectorSearchOptions,
+  retrievalOptions: VectorSearchOptions,
   { chatRepository, retriever, ai }: GenerateRagResponseDependencies
 ): Promise<Message> => {
   // Get conversation history
@@ -61,7 +61,7 @@ export const generateRagResponse = async (
 export const streamRagResponse = async function* (
   conversationId: string,
   userMessage: string,
-  retrievalOptions?: VectorSearchOptions,
+  retrievalOptions: VectorSearchOptions,
   { chatRepository, retriever, ai }: GenerateRagResponseDependencies
 ): AsyncGenerator<string> {
   // Get conversation history
