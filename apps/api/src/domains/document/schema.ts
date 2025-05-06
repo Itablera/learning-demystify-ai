@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import { DataResponseSchema, BaseResponseSchema } from '../http/schema'
-import { DocumentSchema, DocumentChunkSchema, TextChunkingOptionsSchema } from '@workspace/domains'
+import { TextChunkingOptionsSchema } from '@workspace/domains'
 
 /**
  * Schema for document ingestion request
@@ -10,7 +9,6 @@ export const IngestDocumentRequestSchema = z.object({
   metadata: z.record(z.string(), z.any()).optional(),
   chunkingOptions: TextChunkingOptionsSchema.optional(),
 })
-
 export type IngestDocumentRequest = z.infer<typeof IngestDocumentRequestSchema>
 
 /**
@@ -21,27 +19,4 @@ export const SearchDocumentsRequestSchema = z.object({
   limit: z.number().int().positive().default(5).optional(),
   threshold: z.number().min(0).max(1).default(0.7).optional(),
 })
-
 export type SearchDocumentsRequest = z.infer<typeof SearchDocumentsRequestSchema>
-
-/**
- * Document list schema for API responses
- */
-export const DocumentListSchema = z.object({
-  documents: z.array(DocumentSchema),
-})
-
-/**
- * Document chunks schema for API responses
- */
-export const DocumentChunksSchema = z.object({
-  chunks: z.array(DocumentChunkSchema),
-})
-
-/**
- * Search results schema for API responses
- */
-export const SearchResultsSchema = z.object({
-  results: z.array(DocumentChunkSchema),
-  count: z.number().int().nonnegative(),
-})
