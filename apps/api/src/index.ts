@@ -1,15 +1,12 @@
-import 'dotenv/config'
 import Fastify from 'fastify'
-import { config } from './config/index.js'
-import { registerPlugins } from './plugins/index.js'
-import { registerRoutes } from './routes/index.js'
+import { registerRoutes } from './routes'
 import { serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod'
-import dotenv from 'dotenv'
+import config from '@workspace/env'
+import { registerPlugins } from './plugins'
 
-dotenv.config()
-
+// Create Fastify server
 const fastify = Fastify({
-  logger: config.logger,
+  logger: config.server.logger,
 }).withTypeProvider<ZodTypeProvider>()
 export type RoutesProvider = typeof fastify
 
@@ -17,17 +14,21 @@ export type RoutesProvider = typeof fastify
 fastify.setValidatorCompiler(validatorCompiler)
 fastify.setSerializerCompiler(serializerCompiler)
 
-/**
- * Run the server!
- */
-const start = async () => {
+// Setup server
+async function setupServer() {
+  // Register all plugins
+  await registerPlugins(fastify)
+
+  // Register all routes
+  await registerRoutes(fastify)
+
+  // Handle 404 errors
+  fastify.setNotFoundHandler((request, reply) => {
+    reply.code(404).send({ error: 'Route not found' })
+  })
+
+  // Start the server
   try {
-    // Register all plugins
-    await registerPlugins(fastify)
-
-    // Register all routes
-    await registerRoutes(fastify)
-
     await fastify.listen({
       port: config.server.port,
       host: config.server.host,
@@ -42,4 +43,8 @@ const start = async () => {
   }
 }
 
-start()
+// Initialize server
+setupServer().catch(err => {
+  console.error('Failed to start server:', err)
+  process.exit(1)
+})
