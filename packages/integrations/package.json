@@ -19,6 +19,7 @@
     "@workspace/domains": "workspace:*",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
+    "@workspace/env": "workspace:*",
     "typescript": "^5.3.3"
   }
 }

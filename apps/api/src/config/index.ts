@@ -1,18 +1,16 @@
 import dotenv from 'dotenv'
+import { serverConfig } from '@workspace/env'
 
 dotenv.config()
 
-// Configuration values for the application
-const env = process.env.NODE_ENV || 'development'
-
 export const config = {
-  env,
-  isDev: env === 'development',
-  isProd: env === 'production',
+  env: serverConfig.nodeEnv,
+  isDev: serverConfig.isDev,
+  isProd: serverConfig.isProd,
 
   server: {
-    port: Number(process.env.PORT) || 3000,
-    host: process.env.HOST || '0.0.0.0',
+    port: serverConfig.port,
+    host: serverConfig.host,
   },
 
   logger: true,

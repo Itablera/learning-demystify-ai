@@ -44,6 +44,7 @@
     "@workspace/integrations": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "@workspace/use-cases": "workspace:*",
+    "@workspace/env": "workspace:*",
     "tsx": "^4.7.0",
     "typescript": "^5.7.3"
   }

@@ -1,5 +1,6 @@
 import { OllamaEmbeddings } from '@langchain/ollama'
 import { Embeddings } from '../embeddings'
+import { ollamaConfig, embeddingsConfig } from '@workspace/env'
 
 /**
  * LangChain implementation of the Embeddings interface
@@ -10,14 +11,13 @@ export class LangChainEmbeddings implements Embeddings {
   constructor(
     options: {
       modelName?: string
-      apiKey?: string
     } = {}
   ) {
-    const { modelName, apiKey } = options
+    const { modelName } = options
 
     this.embeddingModel = new OllamaEmbeddings({
-      model: modelName || 'nomic-embed-text',
-      baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
+      model: modelName || embeddingsConfig.model,
+      baseUrl: ollamaConfig.apiUrl,
     })
   }
 
