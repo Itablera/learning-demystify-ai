@@ -16,13 +16,17 @@ export type SearchDocumentsRequest = z.infer<typeof SearchDocumentsRequestSchema
 /**
  * Search Documents Response Schema
  */
-export const SearchDocumentsResponseSchema = DataResponseSchema(z.array(z.object({
-  id: z.string(),
-  documentId: z.string(),
-  content: z.string(),
-  metadata: z.record(z.string(), z.any()).optional(),
-  score: z.number().optional(),
-})))
+export const SearchDocumentsResponseSchema = DataResponseSchema(
+  z.array(
+    z.object({
+      id: z.string(),
+      documentId: z.string(),
+      content: z.string(),
+      metadata: z.record(z.string(), z.any()).optional(),
+      score: z.number().optional(),
+    })
+  )
+)
 
 export type SearchDocumentsResponse = z.infer<typeof SearchDocumentsResponseSchema>
 

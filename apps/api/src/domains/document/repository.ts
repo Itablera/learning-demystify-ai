@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 /**
  * In-memory implementation of DocumentRepository for demonstration
- * In a real-world application, this would be replaced with persistence 
+ * In a real-world application, this would be replaced with persistence
  * to a vector database like Qdrant, Pinecone, etc.
  */
 export class MockDocumentRepository implements DocumentRepository {
@@ -72,7 +72,7 @@ export class MockDocumentRepository implements DocumentRepository {
     // In a real application, this would use vector similarity search
     // For this mock implementation, we'll do a naive text search
     const allChunks = Array.from(this.documentChunks.values()).flat()
-    
+
     // Simple keyword match with simulated scoring
     // This is just for demonstration - real vector search would be more sophisticated
     const results = allChunks
@@ -80,7 +80,7 @@ export class MockDocumentRepository implements DocumentRepository {
         // Calculate a mock relevance score
         const queryTokens = query.toLowerCase().split(/\s+/)
         const contentLower = chunk.content.toLowerCase()
-        
+
         let score = 0
         queryTokens.forEach(token => {
           if (contentLower.includes(token)) {
@@ -89,13 +89,13 @@ export class MockDocumentRepository implements DocumentRepository {
             score += matches / contentLower.length
           }
         })
-        
+
         return { ...chunk, score }
       })
       .filter(result => result.score > threshold)
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
-    
+
     return results
   }
 }
