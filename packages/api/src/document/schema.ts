@@ -1,6 +1,10 @@
 import { z } from 'zod'
-import { DataResponseSchema, BaseResponseSchema } from '../http/schema'
-import { DocumentSchema, DocumentChunkSchema, TextChunkingOptionsSchema } from '@workspace/domains'
+import {
+  DocumentSchema,
+  DocumentChunkSchema,
+  TextChunkingOptionsSchema,
+  RetrievalResultSchema,
+} from '@workspace/domains'
 
 /**
  * Schema for document ingestion request
@@ -42,6 +46,7 @@ export const DocumentChunksSchema = z.object({
  * Search results schema for API responses
  */
 export const SearchResultsSchema = z.object({
-  results: z.array(DocumentChunkSchema),
+  results: z.array(RetrievalResultSchema),
   count: z.number().int().nonnegative(),
 })
+export type SearchResults = z.infer<typeof SearchResultsSchema>

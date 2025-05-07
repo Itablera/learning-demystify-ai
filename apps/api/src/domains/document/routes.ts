@@ -7,6 +7,8 @@ import {
   SearchResultsSchema,
   BaseResponseSchema,
   DataResponseSchema,
+  DataResponse,
+  SearchResults,
 } from '@workspace/api'
 import { getDocumentRepository } from '@/repositories'
 import { langchain } from '@workspace/integrations'
@@ -14,6 +16,7 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
 import { RoutesProvider } from '@/index'
 import { DocumentSchema } from '@workspace/domains'
 import z from 'zod'
+import config from '@workspace/env'
 
 const docParam = z.object({
   id: z.string().uuid('Invalid document ID'),
@@ -30,6 +33,11 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
     chunkOverlap: 200,
   })
   const documentRepository = getDocumentRepository(embeddings)
+  const vectorStore = new langchain.QdrantVectorStore(
+    config.vectorDb.qdrantUrl,
+    'documents',
+    embeddings
+  )
 
   // Get a list of all documents
   routes.get('/', {
@@ -128,7 +136,7 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
           content,
           metadata || {},
           chunkingOptions || { chunkSize: 1000, chunkOverlap: 200 },
-          { documentRepository, textSplitter, embeddings }
+          { documentRepository, textSplitter, embeddings, vectorStore }
         )
 
         return {
@@ -188,15 +196,18 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
     },
     handler: async (request, reply) => {
       try {
-        const { query, limit, threshold } = request.body as {
+        const {
+          query,
+          limit = 10,
+          threshold = 0.5,
+        } = request.body as {
           query: string
           limit?: number
           threshold?: number
         }
 
-        const results = await searchDocuments(query, limit, threshold, { documentRepository })
-
-        return {
+        const results = await searchDocuments(query, { limit, threshold }, { vectorStore })
+        const response: DataResponse<SearchResults> = {
           success: true,
           timestamp: new Date().toISOString(),
           data: {
@@ -204,6 +215,8 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
             count: results.length,
           },
         }
+
+        return response
       } catch (error) {
         routes.log.error(error)
         return reply.code(500).send({
