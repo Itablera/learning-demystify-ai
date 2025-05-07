@@ -13,13 +13,14 @@
     "@langchain/ollama": "^0.2.0",
     "@langchain/qdrant": "^0.1.2",
     "@langchain/textsplitters": "^0.1.0",
-    "nanoid": "^5.1.5"
+    "@qdrant/js-client-rest": "^1.14.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@workspace/domains": "workspace:*",
+    "@workspace/env": "workspace:*",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "@workspace/env": "workspace:*",
     "typescript": "^5.3.3"
   }
 }

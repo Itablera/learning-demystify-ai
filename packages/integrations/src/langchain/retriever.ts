@@ -2,7 +2,7 @@ import { QdrantVectorStore } from '@langchain/qdrant'
 import { RetrievalResult, VectorSearchOptions } from '@workspace/domains'
 import { Retriever } from '../retriever'
 import { Embeddings } from '../embeddings'
-import { nanoid } from 'nanoid'
+import { v4 as uuidv4 } from 'uuid'
 
 /**
  * LangChain implementation of the Retriever interface using Qdrant vector database
@@ -69,7 +69,7 @@ export class QdrantRetriever implements Retriever {
 
       // Transform to match our RetrievalResult interface
       return results.map(([doc, score]) => ({
-        id: doc.metadata?.id?.toString() || nanoid(),
+        id: doc.metadata?.id?.toString() || uuidv4(),
         content: doc.pageContent,
         metadata: doc.metadata as Record<string, unknown>,
         score,
@@ -84,7 +84,7 @@ export class QdrantRetriever implements Retriever {
    * Add a document to the retriever's knowledge base
    */
   async addDocument(content: string, metadata?: Record<string, unknown>): Promise<string> {
-    const id = nanoid()
+    const id = uuidv4()
 
     try {
       // Use LangChain's addDocuments method to add a document with metadata

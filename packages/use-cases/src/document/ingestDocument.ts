@@ -1,13 +1,12 @@
-import {
-  Document,
-  DocumentChunk,
-  DocumentRepository,
-  TextChunkingOptions,
-} from '@workspace/domains'
-import { Embeddings, TextSplitter } from '@workspace/integrations'
+import { Document, DocumentRepository, TextChunkingOptions } from '@workspace/domains'
+import { Embeddings, TextSplitter, VectorStore } from '@workspace/integrations'
 
+/**
+ * Dependencies for the ingestDocument use-case
+ */
 interface IngestDocumentDependencies {
   documentRepository: DocumentRepository
+  vectorStore: VectorStore
   textSplitter: TextSplitter
   embeddings: Embeddings
 }
@@ -17,14 +16,14 @@ interface IngestDocumentDependencies {
  * This process:
  * 1. Creates a document record
  * 2. Splits the document into chunks
- * 3. Generates embeddings for each chunk
- * 4. Stores chunks with embeddings
+ * 3. For each chunk, adds it to the vector store
+ * 4. Stores document chunks in the document repository
  */
 export const ingestDocument = async (
   content: string,
   metadata: Record<string, unknown> = {},
   chunkingOptions: TextChunkingOptions,
-  { documentRepository, textSplitter, embeddings }: IngestDocumentDependencies
+  { documentRepository, vectorStore, textSplitter, embeddings }: IngestDocumentDependencies
 ): Promise<Document> => {
   // Create document record
   const document = await documentRepository.createDocument(content, metadata)
@@ -32,19 +31,25 @@ export const ingestDocument = async (
   // Split document into chunks
   const textChunks = await textSplitter.splitText(content, chunkingOptions)
 
-  // Create document chunks with embeddings
+  // Process each chunk
   const chunkPromises = textChunks.map(async chunkContent => {
-    // Generate embedding for this chunk
-    const embedding = await embeddings.getEmbedding(chunkContent)
+    // Add to vector store with document reference
+    const chunkId = await vectorStore.addDocument(chunkContent, {
+      ...metadata,
+      documentId: document.id,
+    })
 
+    // Return chunk data for document repository
     return {
       content: chunkContent,
-      metadata,
-      embedding,
+      metadata: {
+        ...metadata,
+        vectorChunkId: chunkId,
+      },
     }
   })
 
-  // Process all chunks
+  // Store all chunks in document repository
   const chunks = await Promise.all(chunkPromises)
   await documentRepository.createDocumentChunks(document.id, chunks)
 

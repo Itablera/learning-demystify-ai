@@ -1,20 +1,21 @@
-import { DocumentChunk, DocumentRepository } from '@workspace/domains'
-import { Embeddings } from '@workspace/integrations'
+import { RetrievalResult, VectorSearchOptions } from '@workspace/domains'
+import { VectorStore } from '@workspace/integrations'
 
+/**
+ * Dependencies required for document search
+ */
 interface SearchDocumentsDependencies {
-  documentRepository: DocumentRepository
+  vectorStore: VectorStore
 }
 
 /**
- * Search for documents in the knowledge base
- * Uses the vector similarity search functionality from the document repository
+ * Search for documents in the knowledge base using vector similarity
  */
 export const searchDocuments = async (
   query: string,
-  limit: number = 5,
-  threshold: number = 0.7,
-  { documentRepository }: SearchDocumentsDependencies
-): Promise<DocumentChunk[]> => {
-  // Perform similarity search
-  return documentRepository.similaritySearch(query, limit, threshold)
+  options: VectorSearchOptions,
+  { vectorStore }: SearchDocumentsDependencies
+): Promise<RetrievalResult[]> => {
+  // Perform vector search through the vector store integration
+  return vectorStore.vectorSearch(query, options)
 }
