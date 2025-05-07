@@ -32,8 +32,11 @@ export async function registerPlugins(fastify: FastifyInstance): Promise<void> {
         },
       ],
       tags: [
-        { name: 'user', description: 'User related end-points' },
-        { name: 'code', description: 'Code related end-points' },
+        {
+          name: 'documents',
+          description: 'Documents represents the knowledge we would like to use in chats',
+        },
+        { name: 'chat', description: 'Chat related end-points' },
       ],
       components: {
         securitySchemes: {

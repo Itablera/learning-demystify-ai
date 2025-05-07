@@ -42,6 +42,7 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
   // Get a list of all documents
   routes.get('/', {
     schema: {
+      tags: ['documents'],
       response: {
         200: DataResponseSchema(DocumentListSchema),
       },
@@ -59,6 +60,7 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
   // Get a single document by ID
   routes.get('/:id', {
     schema: {
+      tags: ['documents'],
       params: docParam,
       response: {
         200: DataResponseSchema(DocumentSchema),
@@ -88,6 +90,7 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
   // Get document chunks by document ID
   routes.get('/:id/chunks', {
     schema: {
+      tags: ['documents'],
       params: docParam,
       response: {
         200: DataResponseSchema(DocumentChunksSchema),
@@ -118,6 +121,7 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
   // Ingest a new document
   routes.post('/', {
     schema: {
+      tags: ['documents'],
       body: IngestDocumentRequestSchema,
       response: {
         200: DataResponseSchema(DocumentSchema),
@@ -158,6 +162,7 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
   // Delete a document
   routes.delete('/:id', {
     schema: {
+      tags: ['documents'],
       params: docParam,
       response: {
         200: BaseResponseSchema,
@@ -188,6 +193,7 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
   // Search documents
   routes.post('/search', {
     schema: {
+      tags: ['documents'],
       body: SearchDocumentsRequestSchema,
       response: {
         200: DataResponseSchema(SearchResultsSchema),
