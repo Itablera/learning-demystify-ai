@@ -3,7 +3,6 @@ import {
   IngestDocumentRequestSchema,
   SearchDocumentsRequestSchema,
   DocumentListSchema,
-  DocumentChunksSchema,
   SearchResultsSchema,
   BaseResponseSchema,
   DataResponseSchema,
@@ -27,17 +26,12 @@ const docParam = z.object({
  */
 export async function documentRoutes(routes: RoutesProvider): Promise<void> {
   // Initialize dependencies
-  const embeddings = new langchain.LangChainEmbeddings()
   const textSplitter = new RecursiveCharacterTextSplitter({
     chunkSize: 1000,
     chunkOverlap: 200,
   })
-  const documentRepository = getDocumentRepository(embeddings)
-  const vectorStore = new langchain.QdrantVectorStore(
-    config.vectorDb.qdrantUrl,
-    'documents',
-    embeddings
-  )
+  const documentRepository = getDocumentRepository()
+  const vectorStore = new langchain.QdrantVectorStore(config.vectorDb.qdrantUrl, 'documents')
 
   // Get a list of all documents
   routes.get('/', {
@@ -87,37 +81,6 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
     },
   })
 
-  // Get document chunks by document ID
-  routes.get('/:id/chunks', {
-    schema: {
-      tags: ['documents'],
-      params: docParam,
-      response: {
-        200: DataResponseSchema(DocumentChunksSchema),
-        404: BaseResponseSchema,
-      },
-    },
-    handler: async (request, reply) => {
-      const { id } = request.params
-      const document = await documentRepository.getDocument(id)
-
-      if (!document) {
-        return reply.code(404).send({
-          success: false,
-          message: 'Document not found',
-          timestamp: new Date().toISOString(),
-        })
-      }
-
-      const chunks = await documentRepository.getDocumentChunks(id)
-      return {
-        success: true,
-        timestamp: new Date().toISOString(),
-        data: { chunks },
-      }
-    },
-  })
-
   // Ingest a new document
   routes.post('/', {
     schema: {
@@ -140,7 +103,7 @@ export async function documentRoutes(routes: RoutesProvider): Promise<void> {
           content,
           metadata || {},
           chunkingOptions || { chunkSize: 1000, chunkOverlap: 200 },
-          { documentRepository, textSplitter, embeddings, vectorStore }
+          { documentRepository, textSplitter, vectorStore }
         )
 
         return {

@@ -1,5 +1,5 @@
 import { Document, DocumentRepository, TextChunkingOptions } from '@workspace/domains'
-import { Embeddings, TextSplitter, VectorStore } from '@workspace/integrations'
+import { TextSplitter, VectorStore } from '@workspace/integrations'
 
 /**
  * Dependencies for the ingestDocument use-case
@@ -8,7 +8,6 @@ interface IngestDocumentDependencies {
   documentRepository: DocumentRepository
   vectorStore: VectorStore
   textSplitter: TextSplitter
-  embeddings: Embeddings
 }
 
 /**
@@ -23,7 +22,7 @@ export const ingestDocument = async (
   content: string,
   metadata: Record<string, unknown> = {},
   chunkingOptions: TextChunkingOptions,
-  { documentRepository, vectorStore, textSplitter, embeddings }: IngestDocumentDependencies
+  { documentRepository, vectorStore, textSplitter }: IngestDocumentDependencies
 ): Promise<Document> => {
   // Create document record
   const document = await documentRepository.createDocument(content, metadata)
@@ -49,9 +48,8 @@ export const ingestDocument = async (
     }
   })
 
-  // Store all chunks in document repository
-  const chunks = await Promise.all(chunkPromises)
-  await documentRepository.createDocumentChunks(document.id, chunks)
+  // Wait for all chunks to be processed
+  await Promise.all(chunkPromises)
 
   return document
 }
