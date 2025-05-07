@@ -15,7 +15,7 @@ export class QdrantVectorStore implements VectorStore {
 
   constructor(
     connectionString: string = config.vectorDb.qdrantUrl,
-    collectionName: string = 'documents',
+    collectionName: string = config.vectorDb.collectionName,
     embeddingService?: Embeddings
   ) {
     this.client = new QdrantClient({ url: connectionString })
@@ -72,6 +72,7 @@ export class QdrantVectorStore implements VectorStore {
    */
   async vectorSearch(query: string, options?: VectorSearchOptions): Promise<RetrievalResult[]> {
     try {
+      await this.initialize()
       // Set defaults for options
       const limit = options?.limit || 5
       const scoreThreshold = options?.threshold || 0.7

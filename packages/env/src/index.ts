@@ -36,6 +36,7 @@ export const embeddingsConfig = {
  */
 export const vectorDbConfig = {
   qdrantUrl: process.env.QDRANT_URL || 'http://localhost:6333',
+  collectionName: process.env.QDRANT_COLLECTION || 'documents',
 }
 
 /**
