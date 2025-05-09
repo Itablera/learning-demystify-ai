@@ -3,6 +3,7 @@
 // Core interfaces
 export * from './text-splitter'
 export * from './vector-store'
+export * from './ai-service'
 
 // LangChain implementations
 export * as langchain from './langchain'
