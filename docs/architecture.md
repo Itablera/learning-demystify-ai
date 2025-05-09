@@ -1,89 +1,69 @@
-```
-.
-├── apps/                      - Applications that will run and possibly consume packages
-│   ├── deepseek-r1-webgpu     - Demo application to run DeepSeek on WebGPU
-│   ├── janus-pro-webgpu       - Demo application for Janus Pro on WebGPU
-│   ├── api                    - All backend stuff
-│   └── web                    - Frontend web application
-├── packages/                  - Shared packages and data that will be used by applications
-│   ├── domains                - Core logic and domain-specific code
-│   ├── types                  - Shared utility types and enums
-│   └── api                    - API-facing DTO schemas and utilities
-├── infra/                     - Configuration and infrastructure scripts
-│   ├── ollama                 - Instructions on how to run LLMs locally
-│   ├── qdrant                 - Manages vector embeddings for similarity search
-│   └── agent0                 - Instructions on how to run agent-zero locally
-├── reference-repos/           - External repos added as sub-modules for convenience
-└── docs                       - Documentation and notes
-```
+# Architecture
 
-## Architecture and Tooling
+This document outlines the architectural decisions and patterns used in this project. For contribution guidelines and coding conventions, see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-### Development Environment
+## Development Environment
 
-- **VS Code**: The main IDE used for development. Lightweight with a large ecosystem of extensions.
-- **Devcontainer**: Provides a consistent development environment for all developers, ensuring uniform tools and versions across systems.
+- **VS Code**: Primary IDE with extensive extension support
+- **Devcontainer**: Ensures consistent development environment across all systems
 
-### Package Management
+## Package Management
 
-- **Turborepo**: Manages the monorepo, enabling independent build and deployment of applications and packages.
-- **pnpm**: A fast and efficient package manager, well-suited for monorepos.
+- **Turborepo**: Monorepo management for independent build and deployment
+- **pnpm**: Fast, disk-space efficient package manager optimized for monorepos
 
-### Application Design
+## Project Structure
 
-#### Domain-Driven Design (DDD) Principles
+The project follows a monorepo architecture with `@workspace/*` package scope:
 
-The project follows Domain-Driven Design principles, with a clear separation of concerns:
+- **Domains** (`packages/domains`): Core business logic, domain models, and repository interfaces
+- **Use-cases** (`packages/use-cases`): Pure business logic with dependency injection
+- **Integrations** (`packages/integrations`): External service clients and adapters
+- **API** (`packages/api`): API schemas and DTOs
+- **Applications**:
+  - `apps/api`: Backend implementation
+  - `apps/web`: Frontend Next.js application
+  - `apps/deepseek-r1-webgpu`: DeepSeek WebGPU demo
+  - `apps/janus-pro-webgpu`: Janus Pro WebGPU demo
 
-- **Domain Layer** (`packages/domains`): Contains core business logic, domain models, and repository interfaces
+## Domain-Driven Design (DDD)
 
-  - **Schema**: Domain models defined using Zod for validation (`<Domain>Schema`)
-  - **Repository Interface**: Defines the contract for data access operations without implementation details
-  - **Use Cases**: Pure functions that encapsulate business operations (named with verbs like `createUser`)
+The project follows Domain-Driven Design principles with a clear separation of concerns:
 
-- **Application Layer** (`apps/api`): Implements infrastructure concerns
-  - **Repository Implementations**: Concrete implementations of repository interfaces
-  - **Routes**: API endpoints that use domain logic to handle requests
-  - **Controllers**: Coordinate between routes and use-cases
+### Domain Layer
 
-#### Repository Pattern
+- **Domain Models**: Core business entities defined with Zod schemas (`<Domain>Schema`)
+- **Repository Interfaces**: Define data access contracts without implementation details
+- **Value Objects**: Immutable objects representing domain concepts
 
-- **Interface-Implementation Separation**: Repository interfaces are defined in domain packages, implementations in apps
-- **Persistence Logic Isolation**: Repositories contain only data access code, not business logic
-- **Testing Friendly**: Facilitates mocking repositories for unit testing domain logic
+### Application Layer
 
-#### Schema vs DTO Distinction
+- **Use Cases**: Pure functions for business operations (named with verbs)
+- **Services**: Coordinate between multiple repositories or domains
 
-- **Domain Schemas** (`@workspace/domains`): Internal representation of domain entities
-- **API DTOs** (`@workspace/api`): External representation for API requests/responses
+### Infrastructure Layer
 
-### Frontend/Backend Separation
+- **Repository Implementations**: Concrete implementations of domain repositories
+- **API Routes**: Entry points for HTTP requests
+- **External Integrations**: Adapters for third-party services
 
-- **Backend/Frontend Separation**: Backend handles business logic and data processing, while frontend focuses on user interface and experience.
-- **REST API**: Backend exposes a REST API for frontend consumption, enabling decoupled development and technology flexibility.
-- **Next.js**: A React framework for building the frontend.
-  - Why not Angular?
-    - Well, mostly because we will play with V0 to get a frontend up and running quickly. V0 prefer React over Angular...
-    - And finally, the frontend is not the main focus of this project.
+## Repository Pattern
 
-### Tools and Technologies
+- **Interface-Implementation Separation**: Interfaces in domains, implementations in apps
+- **Persistence Logic Isolation**: Repositories handle only data access, not business logic
+- **Testability**: Enables easy mocking for unit testing domain logic
 
-- **Docker**: Manages dependent services (e.g., Qdrant, Ollama) and hosts the devcontainer.
-- **Ollama**: Runs LLMs locally, eliminating the need for cloud providers and supporting diverse models.
-- **Qdrant**: Stores and manages vector embeddings for similarity search and related operations.
-- **Langchain**: Manages LLMs and data processing, facilitating easy switching between models and techniques.
+## Data Flow Architecture
 
-## Coding Conventions
+- **Domain Schemas**: Internal representation of business entities
+- **DTOs**: External representation for API communication
+- **Frontend-Backend Communication**: REST API with clear contract separation
 
-### Import Patterns
+## Supporting Technologies
 
-- **Inside packages**: Use relative imports within package boundaries
-- **Inside apps**: Use `@/` alias for app imports, package imports for external dependencies
-- See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed examples
+- **Docker**: Container management for services and development environment
+- **Ollama**: Local LLM runtime environment
+- **Qdrant**: Vector database for embeddings and similarity search
+- **Langchain**: Framework for LLM operations and integrations
 
-### Naming Conventions
-
-- **Schemas**: `<Domain>Schema` (e.g., `UserSchema`)
-- **Use Cases**: Verb-based functions (e.g., `createUser`, `updateProduct`)
-- **Repositories**: `<Domain>Repository` (e.g., `UserRepository`)
-- **Routes**: Domain-scoped files (e.g., `apps/api/src/domains/user/routes.ts`)
+For detailed coding conventions, import patterns, and contribution guidelines, please refer to [CONTRIBUTING.md](../CONTRIBUTING.md).
