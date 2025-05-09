@@ -1,12 +1,12 @@
 import { RetrievalResult } from '@workspace/domains'
-import { AIService } from '../ai-service'
+import { ChatBot } from '../chat-bot'
 import { ChatOllama } from '@langchain/ollama'
 import { PromptTemplate } from '@langchain/core/prompts'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { RunnableSequence, RunnablePassthrough } from '@langchain/core/runnables'
 import config from '@workspace/env'
 
-export class OllamaAIService implements AIService {
+export class OllamaChatBot implements ChatBot {
   private model: string
   private baseUrl: string
   private modelInstance: ChatOllama

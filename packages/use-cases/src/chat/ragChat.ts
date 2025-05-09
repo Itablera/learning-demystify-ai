@@ -1,7 +1,7 @@
-import { AIService, VectorStore } from '@workspace/integrations'
+import { ChatBot, VectorStore } from '@workspace/integrations'
 
 export interface ChatDependencies {
-  aiService: AIService
+  aiService: ChatBot
 }
 
 export interface RAGChatDependencies extends ChatDependencies {
