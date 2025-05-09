@@ -1,3 +1,8 @@
+import dotenv from 'dotenv'
+
+// Load environment variables from .env file
+dotenv.config()
+
 /**
  * Environment configuration module
  * Centralizes all environment variable access across the application

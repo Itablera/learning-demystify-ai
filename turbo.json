@@ -6,7 +6,8 @@
     "PORT",
     "HOST",
     "OLLAMA_MODEL",
-    "OLLAMA_API_URL"
+    "OLLAMA_API_URL",
+    "LOGGER"
   ],
   "tasks": {
     "build": {
