@@ -1,4 +1,9 @@
 //filepath: packages/integrations/src/index.ts
-export * from './ai'
+
+// Core interfaces
+export * from './text-splitter'
 export * from './vector-store'
-export * from './embeddings'
+export * from './chat-bot'
+
+// LangChain implementations
+export * as langchain from './langchain'

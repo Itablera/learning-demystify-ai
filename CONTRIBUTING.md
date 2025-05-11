@@ -27,7 +27,6 @@ Domains follow a folder-based structure:
 packages/domains/src/[domain]/
 ├── schema.ts            # Domain model and validation schemas
 ├── repository.ts        # Repository interface (implementation in apps/api)
-├── use-cases.ts         # Pure, reusable business logic
 └── index.ts             # Public exports
 ```
 
@@ -35,14 +34,15 @@ Use-cases are organized as:
 
 ```
 packages/use-cases/src/[use-case]/
-├── index.ts             # Use-case implementation and exports
+├── index.ts             # Public exports
+├── [use-case].ts        # Use-case definition, pure reusable business logic
 ```
 
 Integrations are organized as:
 
 ```
-packages/integrations/src/[integration]/
-├── adapter.ts           # Integration adapter implementations
+packages/integrations/src/[provider]/
+├── [adapter].ts         # Integration adapter implementations
 └── index.ts             # Public exports
 ```
 

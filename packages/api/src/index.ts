@@ -1,3 +1,3 @@
-export * from './health'
-export * from './chat'
 export * from './http'
+export * from './health'
+export * from './document'

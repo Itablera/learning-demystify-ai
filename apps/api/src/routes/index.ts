@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { healthRoutes } from '@/domains/health'
+import { documentRoutes } from '@/domains/document'
 import { chatRoutes } from '@/domains/chat'
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
@@ -8,6 +9,9 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
     async app => {
       // Health domain routes
       app.register(healthRoutes, { prefix: '/health' })
+
+      // Document domain routes
+      app.register(documentRoutes, { prefix: '/documents' })
 
       // Chat domain routes
       app.register(chatRoutes, { prefix: '/chat' })

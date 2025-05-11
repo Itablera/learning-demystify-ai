@@ -8,11 +8,19 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@langchain/core": "^0.3.46",
+    "@langchain/ollama": "^0.2.0",
+    "@langchain/qdrant": "^0.1.2",
+    "@langchain/textsplitters": "^0.1.0",
+    "@qdrant/js-client-rest": "^1.14.0",
+    "uuid": "^11.1.0"
+  },
   "devDependencies": {
+    "@workspace/domains": "workspace:*",
+    "@workspace/env": "workspace:*",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "@workspace/domains": "workspace:*",
     "typescript": "^5.3.3"
   }
 }
