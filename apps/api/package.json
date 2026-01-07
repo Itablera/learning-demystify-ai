@@ -22,7 +22,7 @@
     "@fastify/sensible": "^6.0.3",
     "@fastify/swagger": "^9.4.2",
     "@fastify/swagger-ui": "^5.2.2",
-    "@langchain/core": "^0.3.46",
+    "@langchain/core": "^0.3.80",
     "@langchain/ollama": "^0.2.0",
     "@langchain/qdrant": "^0.1.2",
     "@qdrant/js-client-rest": "^1.14.0",
